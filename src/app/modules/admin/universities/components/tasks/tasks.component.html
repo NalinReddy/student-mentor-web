@@ -1,0 +1,1418 @@
+<!-- <div class="text-lg font-medium tracking-tight leading-6 truncate flex justify-between">
+    List of tasks
+    <button class="mr-3" mat-flat-button [color]="'primary'" (click)="triggerCreateTask()">
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+        <span class="ml-2">Create Task</span>
+    </button>
+</div> -->
+<!-- Will provide view by table/Kanban option -->
+
+    <!-- Main -->
+    <div class="flex flex-auto p-6 sm:p-10">
+
+        <div class="flex flex-col flex-auto w-full mx-2">
+            <!-- Filters -->
+            <div class="flex flex-col sm:flex-row items-end justify-between w-full max-w-xs sm:max-w-none" [formGroup]="filterTasksForm">
+                <mat-form-field
+                    class="w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4"
+                    [subscriptSizing]="'dynamic'">
+                    <mat-icon
+                        matPrefix
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                    <input
+                        (input)="filterByQuery(query.value)" formControlName="searchText"
+                        placeholder="Search by title or description"
+                        matInput
+                        #query>
+                </mat-form-field>
+                <!-- Multi-select for assignedMentors -->
+                <mat-form-field class="w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4" [subscriptSizing]="'dynamic'">
+                    <mat-label>Mentor</mat-label>
+                    <mat-select [value]="'all'" formControlName="mentorAssigned">
+                        <mat-option [value]="'all'">All</mat-option>   
+                        <mat-option *ngFor="let mentor of mentors" [value]="mentor.id">{{ mentor.firstName }} {{ mentor.lastName }}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <!-- Multi-select for courses -->
+               <mat-form-field class="w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4 mr-2" [subscriptSizing]="'dynamic'">
+                <mat-label>Courses</mat-label>
+                <mat-select [value]="'all'" formControlName="course" [value]="'all'">
+                     <!-- <mat-option [value]="'all'">All</mat-option> -->
+                     <mat-option *ngFor="let course of courses" [value]="course.id">{{ course.name }}</mat-option>
+                </mat-select>
+                </mat-form-field>
+                <!-- Multi-select for Week -->
+                <mat-form-field class="w-full sm:w-36" [subscriptSizing]="'dynamic'">
+                    <mat-label>Week</mat-label>
+                    <mat-select formControlName="week"  >
+                        <mat-option *ngFor="let week of weeks" [value]="week">{{ week }}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+                <!-- select students -->
+                <mat-form-field class="w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4" [subscriptSizing]="'dynamic'">
+                    <mat-label>Professor</mat-label>
+                    <mat-select [value]="'all'" formControlName="professor">
+                        <mat-option [value]="'all'">All</mat-option>   
+                        <mat-option *ngFor="let professor of professors" [value]="professor.id">{{ professor.title }}.{{ professor.firstName }} {{ professor.lastName }}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+            <!-- <mat-slide-toggle
+                    class="mt-8 sm:mt-0 sm:ml-auto"
+                    [color]="'primary'"
+                    (change)="toggleCompleted($event)">
+                    Hide completed
+                </mat-slide-toggle> -->
+            <!-- Tasks -->
+            <ng-container *ngIf="this.filteredTasks.length; else noTasks">
+                <div class="flex flex-col flex-auto mt-2 overflow-x-auto">
+                    <table class="min-w-240 overflow-y-visible" mat-table [dataSource]="filteredTasks">
+
+                        <!-- name -->
+                        <ng-container matColumnDef="firstName" sticky>
+                            <th mat-header-cell *matHeaderCellDef>
+                                Name
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div class="font-medium text-right text-nowrap">
+                                    {{task.student.firstName}} {{task.student.lastName}}
+                                </div>
+                            </td>
+                        </ng-container>
+                
+                        <!-- Type -->
+                        <ng-container matColumnDef="studentId">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Student ID
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div class="leading-4 text-nowrap">{{task.student.studentId}}</div>
+                            </td>
+                        </ng-container>
+
+                        <!-- course -->
+                        <ng-container matColumnDef="course">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Course
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div class="leading-4 text-nowrap">{{selectedCourse.name}}</div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Type -->
+                        <ng-container matColumnDef="term">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Term
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div class="leading-4 text-nowrap">{{selectedCourse.termPeriod?.type}}</div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Type -->
+                        <ng-container matColumnDef="week">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Week
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit text-center">
+                                <div class="leading-4 text-nowrap">{{task.week}}</div>
+                            </td>
+                        </ng-container>
+
+                        <!-- professor -->
+                        <ng-container matColumnDef="prof">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Professor
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div class="leading-4 text-nowrap">{{task?.course?.professor?.title}} {{task?.course?.professor?.firstName}} {{task?.course?.professor?.lastName}}</div>
+                            </td>
+                        </ng-container>
+
+                        <!-- grades -->
+                        <ng-container matColumnDef="grades">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Grade
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                    <mat-form-field
+                                        class="w-[100px]"
+                                        [subscriptSizing]="'dynamic'">
+                                        <input [(ngModel)]="task.grade" (change)="onTaskFieldsChange(task)"
+                                            matInput>
+                                    </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- Joining date -->
+                        <ng-container matColumnDef="joiningDate">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Joining date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <mat-form-field class="mt-[1rem] mb-[-0.5rem]">
+                                    <input matInput [matDatepicker]="picker" [(ngModel)]="task.joiningDate" (ngModelChange)="onTaskFieldsChange(task)">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- Prof comments -->
+                        <ng-container matColumnDef="profComments">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Professor Comments
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field 
+                                            class="w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4"
+                                            [subscriptSizing]="'dynamic'">
+                                            <textarea matInput [(ngModel)]="task.profComments" (change)="onTaskFieldsChange(task)"
+                                                cdkTextareaAutosize
+                                                #autosize="cdkTextareaAutosize"
+                                                cdkAutosizeMinRows="1"
+                                                cdkAutosizeMaxRows="5">
+                                            </textarea>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Prof pref. -->
+                        <ng-container matColumnDef="profpref">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Professor preference
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field 
+                                            class="w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4"
+                                            [subscriptSizing]="'dynamic'">
+                                            <textarea matInput [(ngModel)]="task.profPref" (change)="onTaskFieldsChange(task)"
+                                                cdkTextareaAutosize
+                                                #autosize="cdkTextareaAutosize"
+                                                cdkAutosizeMinRows="1"
+                                                cdkAutosizeMaxRows="5">
+                                            </textarea>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Discussion1 -->
+                        <ng-container matColumnDef="discussion1">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Discussion1 Replies
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                                            <mat-select (selectionChange)="onTaskFieldsChange(task)" [(ngModel)]="task.discussions['discussion1']">
+                                                <mat-option value="NA">--None--</mat-option>
+                                                <mat-option *ngFor="let discussion of discussionReplies" [value]="discussion">{{ discussion }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Replies1 -->
+                        <ng-container matColumnDef="replies1">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Replies1 Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                                            <mat-select (selectionChange)="onTaskFieldsChange(task)" [(ngModel)]="task.repliesStatus['repliesStatus1']">
+                                                <mat-option value="NA">--None--</mat-option>
+                                                <mat-option *ngFor="let reply of repliesStatus" [value]="reply">{{ reply }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Discussion2 -->
+                        <ng-container matColumnDef="discussion2">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Discussion2 Replies
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                                            <mat-select (selectionChange)="onTaskFieldsChange(task)" [(ngModel)]="task.discussions['discussion2']">
+                                                <mat-option value="NA">--None--</mat-option>
+                                                <mat-option *ngFor="let discussion of discussionReplies" [value]="discussion">{{ discussion }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Replies2 -->
+                        <ng-container matColumnDef="replies2">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Replies2 Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                                            <mat-select (selectionChange)="onTaskFieldsChange(task)" [(ngModel)]="task.repliesStatus['repliesStatus2']">
+                                                <mat-option value="NA">--None--</mat-option>
+                                                <mat-option *ngFor="let reply of repliesStatus" [value]="reply">{{ reply }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Discussion3 -->
+                        <ng-container matColumnDef="discussion3">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Discussion3 Replies
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                                            <mat-select (selectionChange)="onTaskFieldsChange(task)" [(ngModel)]="task.discussions['discussion3']">
+                                                <mat-option value="NA">--None--</mat-option>
+                                                <mat-option *ngFor="let discussion of discussionReplies" [value]="discussion">{{ discussion }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Replies3 -->
+                        <ng-container matColumnDef="replies3">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Replies3 Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                                            <mat-select (selectionChange)="onTaskFieldsChange(task)" [(ngModel)]="task.repliesStatus['repliesStatus3']">
+                                                <mat-option value="NA">--None--</mat-option>
+                                                <mat-option *ngFor="let reply of repliesStatus" [value]="reply">{{ reply }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Discussion4 -->
+                        <ng-container matColumnDef="discussion4">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Discussion4 Replies
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                                            <mat-select (selectionChange)="onTaskFieldsChange(task)" [(ngModel)]="task.discussions['discussion4']">
+                                                <mat-option value="NA">--None--</mat-option>
+                                                <mat-option *ngFor="let discussion of discussionReplies" [value]="discussion">{{ discussion }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Replies4 -->
+                        <ng-container matColumnDef="replies4">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Replies4 Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full">
+                                            <mat-select (selectionChange)="onTaskFieldsChange(task)" [(ngModel)]="task.repliesStatus['repliesStatus4']">
+                                                <mat-option value="NA">--None--</mat-option>
+                                                <mat-option *ngFor="let reply of repliesStatus" [value]="reply">{{ reply }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Topic1 -->
+                        <ng-container matColumnDef="topic1">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Topic1
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (selectionChange)="onTopicChange($event, task, 1)" [(ngModel)]="task.topics[0].topic">
+                                                <mat-option *ngFor="let topic of topicsLookup" [value]="topic.id">{{ topic.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- DueDate1 -->
+                        <ng-container matColumnDef="dueDate1">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Due Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div
+                                    class="relative flex items-center mt-1.5 px-4 leading-9 cursor-pointer text-nowrap"
+                                    [ngClass]="{'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-700': !task.topics[0]?.dueDate,
+                                                'text-green-800 bg-green-200 dark:text-green-100 dark:bg-green-500': task.topics[0]?.dueDate && !isOverdue(task.topics[0]),
+                                                'text-red-800 bg-red-200 dark:text-red-100 dark:bg-red-500': task.topics[0]?.dueDate && isOverdue(task.topics[0])}"
+                                    (click)="dueDatePicker1.open()">
+                                    <mat-icon
+                                        class="icon-size-5 text-current"
+                                        [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                    <span class="ml-2 text-md font-medium">
+                                        <ng-container *ngIf="task.topics[0]?.dueDate">{{task.topics[0]?.dueDate | date:'longDate'}}</ng-container>
+                                        <ng-container *ngIf="!task.topics[0]?.dueDate">Not set</ng-container>
+                                    </span>
+                                    <mat-form-field
+                                        class="fuse-mat-dense invisible absolute inset-0 -mt-2.5 opacity-0 pointer-events-none"
+                                        [subscriptSizing]="'dynamic'">
+                                        <input
+                                            matInput [(ngModel)]="task.topics[0].dueDate" (ngModelChange)="onDueDateChange($event, task, 1)"
+                                            [matDatepicker]="dueDatePicker1">
+                                        <mat-datepicker #dueDatePicker1>
+                                            <mat-datepicker-actions>
+                                                <button (click)="task.topics[0].dueDate = null; onDueDateChange(null, task, 1)"
+                                                    mat-button
+                                                    matDatepickerCancel>Clear
+                                                </button>
+                                                <button
+                                                    class=""
+                                                    mat-flat-button
+                                                    [color]="'primary'"
+                                                    matDatepickerApply>Select
+                                                </button>
+                                            </mat-datepicker-actions>
+                                        </mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- postedDate1 -->
+                        <ng-container matColumnDef="postedDate1">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <mat-form-field class="mt-[1rem] mb-[-0.5rem]">
+                                    <input matInput [matDatepicker]="picker" [(ngModel)]="task.topics[0].postedDate" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 1)">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- PostedBy1 -->
+                        <ng-container matColumnDef="postedBy1">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted By
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (openedChange)="getPostedByForMentor(task)" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 1)" [(ngModel)]="task.topics[0].postedBy">
+                                                <mat-option value="0">--None--</mat-option>
+                                                <mat-option *ngFor="let mentor of membersOfMentorsByTaskId[task.id]" [value]="mentor.id">{{ mentor.firstName }}{{ mentor.lastName }}</mat-option>                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Status1 -->
+                        <ng-container matColumnDef="status1">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[150px]">
+                                            <mat-select [(ngModel)]="task.topics[0].status" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 1)">
+                                                <mat-option *ngFor="let status of taskStatusArr" [value]="status.name">{{ status.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Topic2 -->
+                        <ng-container matColumnDef="topic2">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Topic2
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (selectionChange)="onTopicChange($event, task, 2)" [(ngModel)]="task.topics[1].topic">
+                                                <mat-option *ngFor="let topic of topicsLookup" [value]="topic.id">{{ topic.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- DueDate2 -->
+                        <ng-container matColumnDef="dueDate2">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Due Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div
+                                    class="relative flex items-center mt-1.5 px-4 leading-9 cursor-pointer text-nowrap"
+                                    [ngClass]="{'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-700': !task.topics[1]?.dueDate,
+                                                'text-green-800 bg-green-200 dark:text-green-100 dark:bg-green-500': task.topics[1]?.dueDate && !isOverdue(task.topics[1]),
+                                                'text-red-800 bg-red-200 dark:text-red-100 dark:bg-red-500': task.topics[1]?.dueDate && isOverdue(task.topics[1])}"
+                                    (click)="dueDatePicker2.open()">
+                                    <mat-icon
+                                        class="icon-size-5 text-current"
+                                        [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                    <span class="ml-2 text-md font-medium">
+                                        <ng-container *ngIf="task.topics[1]?.dueDate">{{task.topics[1]?.dueDate | date:'longDate'}}</ng-container>
+                                        <ng-container *ngIf="!task.topics[1]?.dueDate">Not set</ng-container>
+                                    </span>
+                                    <mat-form-field
+                                        class="fuse-mat-dense invisible absolute inset-0 -mt-2.5 opacity-0 pointer-events-none"
+                                        [subscriptSizing]="'dynamic'">
+                                        <input [(ngModel)]="task.topics[1].dueDate" (ngModelChange)="onDueDateChange($event, task, 2)"
+                                            matInput
+                                            [matDatepicker]="dueDatePicker2">
+                                        <mat-datepicker #dueDatePicker2>
+                                            <mat-datepicker-actions>
+                                                <button (click)="task.topics[1].dueDate = null; onDueDateChange(null, task, 2)"
+                                                    mat-button
+                                                    matDatepickerCancel>Clear
+                                                </button>
+                                                <button
+                                                    class=""
+                                                    mat-flat-button
+                                                    [color]="'primary'"
+                                                    matDatepickerApply>Select
+                                                </button>
+                                            </mat-datepicker-actions>
+                                        </mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- postedDate2 -->
+                        <ng-container matColumnDef="postedDate2">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <mat-form-field class="mt-[1rem] mb-[-0.5rem]">
+                                    <input matInput [matDatepicker]="picker" [(ngModel)]="task.topics[1].postedDate" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 2)">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- PostedBy2 -->
+                        <ng-container matColumnDef="postedBy2">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted By
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (openedChange)="getPostedByForMentor(task)" [(ngModel)]="task.topics[1].postedBy" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 2)">
+                                                <mat-option value="0">--None--</mat-option>
+                                                <mat-option *ngFor="let mentor of membersOfMentorsByTaskId[task.id]" [value]="mentor.id">{{ mentor.firstName }}{{ mentor.lastName }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- status2 -->
+                        <ng-container matColumnDef="status2">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[150px]">
+                                            <mat-select [(ngModel)]="task.topics[1].status" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 2)">
+                                                <mat-option *ngFor="let status of taskStatusArr" [value]="status.name">{{ status.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+
+                        <!-- Topic3 -->
+                        <ng-container matColumnDef="topic3">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Topic3
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (selectionChange)="onTopicChange($event, task, 3)" [(ngModel)]="task.topics[2].topic">
+                                                <mat-option *ngFor="let topic of topicsLookup" [value]="topic.id">{{ topic.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- DueDate3 -->
+                        <ng-container matColumnDef="dueDate3">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Due Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div
+                                    class="relative flex items-center mt-1.5 px-4 leading-9 cursor-pointer text-nowrap"
+                                    [ngClass]="{'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-700': !task.topics[2]?.dueDate,
+                                                'text-green-800 bg-green-200 dark:text-green-100 dark:bg-green-500': task.topics[2]?.dueDate && !isOverdue(task.topics[2]),
+                                                'text-red-800 bg-red-200 dark:text-red-100 dark:bg-red-500': task.topics[2]?.dueDate && isOverdue(task.topics[2])}"
+                                    (click)="dueDatePicker3.open()">
+                                    <mat-icon
+                                        class="icon-size-5 text-current"
+                                        [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                    <span class="ml-2 text-md font-medium">
+                                        <ng-container *ngIf="task.topics[2].dueDate">{{task.topics[2].dueDate | date:'longDate'}}</ng-container>
+                                        <ng-container *ngIf="!task.topics[2].dueDate">Not set</ng-container>
+                                    </span>
+                                    <mat-form-field
+                                        class="fuse-mat-dense invisible absolute inset-0 -mt-2.5 opacity-0 pointer-events-none"
+                                        [subscriptSizing]="'dynamic'">
+                                        <input [(ngModel)]="task.topics[2].dueDate" (ngModelChange)="onDueDateChange($event, task, 3)"
+                                            matInput
+                                            [matDatepicker]="dueDatePicker3">
+                                        <mat-datepicker #dueDatePicker3>
+                                            <mat-datepicker-actions>
+                                                <button (click)="task.topics[2].dueDate = null; onDueDateChange(null, task, 3)"
+                                                    mat-button
+                                                    matDatepickerCancel>Clear
+                                                </button>
+                                                <button
+                                                    class=""
+                                                    mat-flat-button
+                                                    [color]="'primary'"
+                                                    matDatepickerApply>Select
+                                                </button>
+                                            </mat-datepicker-actions>
+                                        </mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- postedDate3 -->
+                        <ng-container matColumnDef="postedDate3">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <mat-form-field class="mt-[1rem] mb-[-0.5rem]">
+                                    <input matInput [matDatepicker]="picker" [(ngModel)]="task.topics[2].postedDate" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 3)">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- PostedBy3 -->
+                        <ng-container matColumnDef="postedBy3">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted By
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (openedChange)="getPostedByForMentor(task)" [(ngModel)]="task.topics[2].postedBy" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 3)">
+                                                <mat-option value="0">--None--</mat-option>
+                                                <mat-option *ngFor="let mentor of membersOfMentorsByTaskId[task.id]" [value]="mentor.id">{{ mentor.firstName }}{{ mentor.lastName }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- status3 -->
+                        <ng-container matColumnDef="status3">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[150px]">
+                                            <mat-select [(ngModel)]="task.topics[2].status" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 3)">
+                                                <mat-option *ngFor="let status of taskStatusArr" [value]="status.name">{{ status.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Topic4 -->
+                        <ng-container matColumnDef="topic4">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Topic4
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (selectionChange)="onTopicChange($event, task, 4)" [(ngModel)]="task.topics[3].topic">
+                                                <mat-option *ngFor="let topic of topicsLookup" [value]="topic.id">{{ topic.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- DueDate4 -->
+                        <ng-container matColumnDef="dueDate4">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Due Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div
+                                    class="relative flex items-center mt-1.5 px-4 leading-9 cursor-pointer text-nowrap"
+                                    [ngClass]="{'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-700': !task.topics[3]?.dueDate,
+                                                'text-green-800 bg-green-200 dark:text-green-100 dark:bg-green-500': task.topics[3]?.dueDate && !isOverdue(task.topics[3]),
+                                                'text-red-800 bg-red-200 dark:text-red-100 dark:bg-red-500': task.topics[3]?.dueDate && isOverdue(task.topics[3])}"
+                                    (click)="dueDatePicker.open()">
+                                    <mat-icon
+                                        class="icon-size-5 text-current"
+                                        [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                    <span class="ml-2 text-md font-medium">
+                                        <ng-container *ngIf="task.topics[3]?.dueDate">{{task.topics[3]?.dueDate | date:'longDate'}}</ng-container>
+                                        <ng-container *ngIf="!task.topics[3]?.dueDate">Not set</ng-container>
+                                    </span>
+                                    <mat-form-field
+                                        class="fuse-mat-dense invisible absolute inset-0 -mt-2.5 opacity-0 pointer-events-none"
+                                        [subscriptSizing]="'dynamic'">
+                                        <input [(ngModel)]="task.topics[3].dueDate" (ngModelChange)="onDueDateChange($event, task, 4)"
+                                            matInput
+                                            [matDatepicker]="dueDatePicker">
+                                        <mat-datepicker #dueDatePicker>
+                                            <mat-datepicker-actions>
+                                                <button (click)="task.topics[3].dueDate = null; onDueDateChange(null, task, 4)"
+                                                    mat-button
+                                                    matDatepickerCancel>Clear
+                                                </button>
+                                                <button
+                                                    class=""
+                                                    mat-flat-button
+                                                    [color]="'primary'"
+                                                    matDatepickerApply>Select
+                                                </button>
+                                            </mat-datepicker-actions>
+                                        </mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- postedDate4 -->
+                        <ng-container matColumnDef="postedDate4">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <mat-form-field class="mt-[1rem] mb-[-0.5rem]">
+                                    <input matInput [matDatepicker]="picker" [(ngModel)]="task.topics[3].postedDate" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 4)">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- PostedBy4 -->
+                        <ng-container matColumnDef="postedBy4">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted By
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (openedChange)="getPostedByForMentor(task)" [(ngModel)]="task.topics[3].postedBy" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 4)">
+                                                <mat-option value="0">--None--</mat-option>
+                                                <mat-option *ngFor="let mentor of membersOfMentorsByTaskId[task.id]" [value]="mentor.id">{{ mentor.firstName }}{{ mentor.lastName }}</mat-option>                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- status4 -->
+                        <ng-container matColumnDef="status4">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[150px]">
+                                            <mat-select [(ngModel)]="task.topics[3].status" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 4)">
+                                                <mat-option *ngFor="let status of taskStatusArr" [value]="status.name">{{ status.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                         <!-- Topic5 -->
+                         <ng-container matColumnDef="topic5">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Topic5
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (selectionChange)="onTopicChange($event, task, 5)" [(ngModel)]="task.topics[4].topic">
+                                                <mat-option *ngFor="let topic of topicsLookup" [value]="topic.id">{{ topic.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- DueDate5 -->
+                        <ng-container matColumnDef="dueDate5">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Due Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div
+                                    class="relative flex items-center mt-1.5 px-4 leading-9 cursor-pointer text-nowrap"
+                                    [ngClass]="{'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-700': !task.topics[4]?.dueDate,
+                                                'text-green-800 bg-green-200 dark:text-green-100 dark:bg-green-500': task.topics[4]?.dueDate && !isOverdue(task.topics[4]),
+                                                'text-red-800 bg-red-200 dark:text-red-100 dark:bg-red-500': task.topics[4]?.dueDate && isOverdue(task.topics[4])}"
+                                    (click)="dueDatePicker.open()">
+                                    <mat-icon
+                                        class="icon-size-5 text-current"
+                                        [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                    <span class="ml-2 text-md font-medium">
+                                        <ng-container *ngIf="task.topics[4]?.dueDate">{{task.topics[4]?.dueDate | date:'longDate'}}</ng-container>
+                                        <ng-container *ngIf="!task.topics[4]?.dueDate">Not set</ng-container>
+                                    </span>
+                                    <mat-form-field
+                                        class="fuse-mat-dense invisible absolute inset-0 -mt-2.5 opacity-0 pointer-events-none"
+                                        [subscriptSizing]="'dynamic'">
+                                        <input [(ngModel)]="task.topics[4].dueDate" (ngModelChange)="onDueDateChange($event, task, 5)"
+                                            matInput
+                                            [matDatepicker]="dueDatePicker">
+                                        <mat-datepicker #dueDatePicker>
+                                            <mat-datepicker-actions>
+                                                <button (click)="task.topics[4].dueDate = null; onDueDateChange(null, task, 5)"
+                                                    mat-button
+                                                    matDatepickerCancel>Clear
+                                                </button>
+                                                <button
+                                                    class=""
+                                                    mat-flat-button
+                                                    [color]="'primary'"
+                                                    matDatepickerApply>Select
+                                                </button>
+                                            </mat-datepicker-actions>
+                                        </mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- postedDate5 -->
+                        <ng-container matColumnDef="postedDate5">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <mat-form-field class="mt-[1rem] mb-[-0.5rem]">
+                                    <input matInput [matDatepicker]="picker" [(ngModel)]="task.topics[4].postedDate" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 5)">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- PostedBy5 -->
+                        <ng-container matColumnDef="postedBy5">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted By
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (openedChange)="getPostedByForMentor(task)" [(ngModel)]="task.topics[4].postedBy" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 5)">
+                                                <mat-option value="0">--None--</mat-option>
+                                                <mat-option *ngFor="let mentor of membersOfMentorsByTaskId[task.id]" [value]="mentor.id">{{ mentor.firstName }}{{ mentor.lastName }}</mat-option>                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- status5 -->
+                        <ng-container matColumnDef="status5">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[150px]">
+                                            <mat-select [(ngModel)]="task.topics[4].status" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 5)">
+                                                <mat-option *ngFor="let status of taskStatusArr" [value]="status.name">{{ status.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                         <!-- Topic6 -->
+                         <ng-container matColumnDef="topic6">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Topic6
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (selectionChange)="onTopicChange($event, task, 6)" [(ngModel)]="task.topics[5].topic">
+                                                <mat-option *ngFor="let topic of topicsLookup" [value]="topic.id">{{ topic.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- DueDate6 -->
+                        <ng-container matColumnDef="dueDate6">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Due Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div
+                                    class="relative flex items-center mt-1.5 px-4 leading-9 cursor-pointer text-nowrap"
+                                    [ngClass]="{'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-700': !task.topics[5]?.dueDate,
+                                                'text-green-800 bg-green-200 dark:text-green-100 dark:bg-green-500': task.topics[5]?.dueDate && !isOverdue(task.topics[5]),
+                                                'text-red-800 bg-red-200 dark:text-red-100 dark:bg-red-500': task.topics[5]?.dueDate && isOverdue(task.topics[5])}"
+                                    (click)="dueDatePicker.open()">
+                                    <mat-icon
+                                        class="icon-size-5 text-current"
+                                        [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                    <span class="ml-2 text-md font-medium">
+                                        <ng-container *ngIf="task.topics[5]?.dueDate">{{task.topics[5]?.dueDate | date:'longDate'}}</ng-container>
+                                        <ng-container *ngIf="!task.topics[5]?.dueDate">Not set</ng-container>
+                                    </span>
+                                    <mat-form-field
+                                        class="fuse-mat-dense invisible absolute inset-0 -mt-2.5 opacity-0 pointer-events-none"
+                                        [subscriptSizing]="'dynamic'">
+                                        <input [(ngModel)]="task.topics[5].dueDate" (ngModelChange)="onDueDateChange($event, task, 6)"
+                                            matInput
+                                            [matDatepicker]="dueDatePicker">
+                                        <mat-datepicker #dueDatePicker>
+                                            <mat-datepicker-actions>
+                                                <button (click)="task.topics[5].dueDate = null; onDueDateChange(null, task, 6)"
+                                                    mat-button
+                                                    matDatepickerCancel>Clear
+                                                </button>
+                                                <button
+                                                    class=""
+                                                    mat-flat-button
+                                                    [color]="'primary'"
+                                                    matDatepickerApply>Select
+                                                </button>
+                                            </mat-datepicker-actions>
+                                        </mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- postedDate6 -->
+                        <ng-container matColumnDef="postedDate6">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <mat-form-field class="mt-[1rem] mb-[-0.5rem]">
+                                    <input matInput [matDatepicker]="picker" [(ngModel)]="task.topics[5].postedDate" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 6)">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- PostedBy6 -->
+                        <ng-container matColumnDef="postedBy6">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted By
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (openedChange)="getPostedByForMentor(task)" [(ngModel)]="task.topics[5].postedBy" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 6)">
+                                                <mat-option value="0">--None--</mat-option>
+                                                <mat-option *ngFor="let mentor of membersOfMentorsByTaskId[task.id]" [value]="mentor.id">{{ mentor.firstName }}{{ mentor.lastName }}</mat-option>                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- status6 -->
+                        <ng-container matColumnDef="status6">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[150px]">
+                                            <mat-select [(ngModel)]="task.topics[5].status" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 6)">
+                                                <mat-option *ngFor="let status of taskStatusArr" [value]="status.name">{{ status.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                         <!-- Topic7 -->
+                         <ng-container matColumnDef="topic7">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Topic7
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (selectionChange)="onTopicChange($event, task, 7)" [(ngModel)]="task.topics[6].topic">
+                                                <mat-option *ngFor="let topic of topicsLookup" [value]="topic.id">{{ topic.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- DueDate7 -->
+                        <ng-container matColumnDef="dueDate7">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Due Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <div
+                                    class="relative flex items-center mt-1.5 px-4 leading-9 cursor-pointer text-nowrap"
+                                    [ngClass]="{'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-700': !task.topics[6]?.dueDate,
+                                                'text-green-800 bg-green-200 dark:text-green-100 dark:bg-green-500': task.topics[6]?.dueDate && !isOverdue(task.topics[6]),
+                                                'text-red-800 bg-red-200 dark:text-red-100 dark:bg-red-500': task.topics[6]?.dueDate && isOverdue(task.topics[6])}"
+                                    (click)="dueDatePicker.open()">
+                                    <mat-icon
+                                        class="icon-size-5 text-current"
+                                        [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                    <span class="ml-2 text-md font-medium">
+                                        <ng-container *ngIf="task.topics[6]?.dueDate">{{task.topics[6]?.dueDate | date:'longDate'}}</ng-container>
+                                        <ng-container *ngIf="!task.topics[6]?.dueDate">Not set</ng-container>
+                                    </span>
+                                    <mat-form-field
+                                        class="fuse-mat-dense invisible absolute inset-0 -mt-2.5 opacity-0 pointer-events-none"
+                                        [subscriptSizing]="'dynamic'">
+                                        <input [(ngModel)]="task.topics[6].dueDate" (ngModelChange)="onDueDateChange($event, task, 7)"
+                                            matInput
+                                            [matDatepicker]="dueDatePicker">
+                                        <mat-datepicker #dueDatePicker>
+                                            <mat-datepicker-actions>
+                                                <button (click)="task.topics[6].dueDate = null; onDueDateChange(null, task, 7)"
+                                                    mat-button
+                                                    matDatepickerCancel>Clear
+                                                </button>
+                                                <button
+                                                    class=""
+                                                    mat-flat-button
+                                                    [color]="'primary'"
+                                                    matDatepickerApply>Select
+                                                </button>
+                                            </mat-datepicker-actions>
+                                        </mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- postedDate7 -->
+                        <ng-container matColumnDef="postedDate7">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted Date
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <mat-form-field class="mt-[1rem] mb-[-0.5rem]">
+                                    <input matInput [matDatepicker]="picker" [(ngModel)]="task.topics[6].postedDate" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 7)">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                            </td>
+                        </ng-container>
+
+                        <!-- PostedBy7 -->
+                        <ng-container matColumnDef="postedBy7">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Posted By
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[300px]">
+                                            <mat-select (openedChange)="getPostedByForMentor(task)" [(ngModel)]="task.topics[6].postedBy" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 7)">
+                                                <mat-option value="0">--None--</mat-option>
+                                                <mat-option *ngFor="let mentor of membersOfMentorsByTaskId[task.id]" [value]="mentor.id">{{ mentor.firstName }}{{ mentor.lastName }}</mat-option>                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- status7 -->
+                        <ng-container matColumnDef="status7">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Status
+                            </th>
+                            <td mat-cell *matCellDef="let task" class="bg-white dark:bg-inherit">
+                                <span class="flex items-center">
+                                    <span class="w-2 h-2 rounded-full"></span>
+                                    <span class="ml-3 leading-4">
+                                        <mat-form-field [subscriptSizing]="'dynamic'" class="w-full min-w-[150px]">
+                                            <mat-select [(ngModel)]="task.topics[6].status" (ngModelChange)="updateFieldValueOfTopicOnChange(task, 7)">
+                                                <mat-option *ngFor="let status of taskStatusArr" [value]="status.name">{{ status.name }}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </span>
+                                </span>
+                            </td>
+                        </ng-container>
+
+
+                
+                        <!-- edu email
+                        <ng-container matColumnDef="eduEmail">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Email
+                            </th>
+                            <td mat-cell *matCellDef="let student">
+                                <span class="font-medium text-right">
+                                    {{student.eduEmail}}
+                                </span>
+                            </td>
+                        </ng-container> -->
+                
+                        <!-- edu email -->
+                        <ng-container matColumnDef="eduPassword">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Password
+                            </th>
+                            <td mat-cell *matCellDef="let task">
+                                <span class="font-medium text-right">
+                                    {{task.student.eduPassword}}
+                                </span>
+                            </td>
+                        </ng-container>
+                
+                        <!-- edu email -->
+                        <ng-container matColumnDef="personalEmail">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Personal Email
+                            </th>
+                            <td mat-cell *matCellDef="let student">
+                                <span class="font-medium text-right">
+                                    {{student.personalEmail}}
+                                </span>
+                            </td>
+                        </ng-container>
+                
+                        <!-- Contact NUmber -->
+                        <ng-container matColumnDef="contactNumber">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Contact Number
+                            </th>
+                            <td mat-cell *matCellDef="let student">
+                                <span class="font-medium text-right">
+                                    {{student.contactNumber}}
+                                </span>
+                            </td>
+                        </ng-container>
+                
+                        <!-- Mentors -->
+                        <!-- <ng-container matColumnDef="assignedMentors">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Mentors assigned
+                            </th>
+                            <td mat-cell *matCellDef="let student">
+                                <span class="font-medium text-right">
+                                    {{student.assignedMentors}}
+                                </span>
+                            </td>
+                        </ng-container> -->
+                
+                        <!-- Courses -->
+                        <!-- <ng-container matColumnDef="courses">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Courses
+                            </th>
+                            <td mat-cell *matCellDef="let student">
+                                <span class="font-medium text-right">
+                                    {{student.courses}}
+                                </span>
+                            </td>
+                        </ng-container> -->
+                
+                        <!-- university -->
+                        <ng-container matColumnDef="university">
+                            <th mat-header-cell *matHeaderCellDef>
+                                University
+                            </th>
+                            <td mat-cell *matCellDef="let student">
+                                <span class="font-medium text-right">
+                                    {{student.university?.name}}
+                                </span>
+                            </td>
+                        </ng-container>
+                
+                        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+                    </table>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-8 sm:mt-10" *ngIf="false">
+                    <ng-container *ngFor="let task of filteredTasks; trackBy: trackByFn">
+                        <!-- task -->
+                        <div class="flex flex-col h-96 shadow rounded-2xl overflow-hidden bg-card">
+                            <div class="flex flex-col p-6">
+                                <div class="flex items-center justify-between">
+                                    <!-- University -->
+                                    <div class="flex items-center">
+                                        <div
+                                            class="mr-2 py-0.5 px-3 rounded-full text-sm font-semibold text-blue-800 bg-blue-100 dark:text-blue-50 dark:bg-blue-500">
+                                            {{task?.university?.name}}
+                                        </div>
+                                        <!-- <div
+                                            class="mr-2 py-0.5 px-3 rounded-full text-sm font-semibold text-amber-800 bg-amber-100 dark:text-amber-50 dark:bg-amber-500">
+                                            {{task?.course?.name}}
+                                        </div> -->
+                                        <div
+                                            class="py-0.5 px-3 rounded-full text-sm font-semibold text-green-800 bg-green-100 dark:text-green-50 dark:bg-green-500">
+                                            {{task?.student?.firstName}} {{task?.student?.lastName}}
+                                        </div>
+                                    </div>
+                                    <!-- Completed at least once -->
+                                    <div class="flex items-center">
+                                        <ng-container >
+                                            <mat-icon *ngIf="task.status === taskStatusTypes.COMPLETED"
+                                                class="icon-size-5 text-green-600"
+                                                [svgIcon]="'heroicons_solid:check-badge'"
+                                                [matTooltip]="'This task is completed'"></mat-icon>
+                                            <mat-icon *ngIf="task.status === taskStatusTypes.IN_PROGRESS"
+                                                class="icon-size-5 text-amber-600"
+                                                [svgIcon]="'heroicons_solid:exclamation-circle'"
+                                                [matTooltip]="'This task is in progress'"></mat-icon>
+                                            <mat-icon *ngIf="task.status === taskStatusTypes.NOT_STARTED"
+                                                class="icon-size-5 text-blue-600"
+                                                [svgIcon]="'heroicons_solid:no-symbol'"
+                                                [matTooltip]="'This task is not started yet.'"></mat-icon>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                                <!-- task title & description -->
+                                <div class="mt-4 text-lg font-medium">
+                                 <span *ngIf="task?.title">{{task.title}} -</span> {{task?.course?.name}}
+                                </div>
+                                <div class="mt-0.5 line-clamp-2 text-secondary">{{task.description}}</div>
+                                <div class="w-12 h-1 my-6 border-t-2"></div>
+                                <!-- task time -->
+                                <div class="flex items-center leading-5 text-md text-secondary">
+                                    <mat-icon
+                                        class="icon-size-5 text-hint"
+                                        [svgIcon]="'heroicons_solid:clock'"></mat-icon>
+                                    <div class="ml-1.5">Week {{task.course?.termPeriod?.startWeek}} - Week {{task.course?.termPeriod?.endWeek}}</div>
+                                </div>
+                                <!-- Student Id -->
+                                <div class="flex items-center leading-5 text-md text-secondary mt-2">
+                                    <mat-icon
+                                        class="icon-size-5 text-hint"
+                                        [svgIcon]="'heroicons_solid:at-symbol'"></mat-icon>
+                                    <div class="ml-1.5">{{task?.studentId}}</div>
+                                </div>
+                                <!-- task completion -->
+                                <div class="flex items-center mt-2 leading-5 text-md text-secondary">
+                                    <mat-icon
+                                        class="icon-size-5 text-hint"
+                                        [svgIcon]="'heroicons_solid:stop-circle'"></mat-icon>
+                                        <div class="ml-1.5 flex flex-wrap">
+                                            <span class="font-medium text-right pr-2">
+                                                Not Started: {{task.taskStats?.notStarted}}
+                                             </span>
+                                             <br>
+                                             <span class="font-medium text-right pr-2">
+                                                 In Progress: {{task.taskStats?.inProgress}}
+                                              </span>
+                                              <br>
+                                              <span class="font-medium text-right pr-2">
+                                                 Completed: {{task.taskStats?.completed}}
+                                              </span>
+                                              <br>
+                                              <span class="font-medium text-right">
+                                                 Total: {{task.taskStats?.total}}
+                                              </span>
+                                              <br>
+                                              <span class="font-medium text-right" *ngIf="task?.professor">
+                                                {{task?.professor?.title}} {{task?.professor?.firstName}} {{task?.professor?.lastName}}
+                                            </span>
+                                        </div>
+                                </div>
+                            </div>
+                            <!-- Footer -->
+                            <div class="flex flex-col w-full mt-auto">
+                                <!-- task progress -->
+                                <div class="relative h-0.5">
+                                    <div
+                                        class="z-10 absolute inset-x-0 h-6 -mt-3"
+                                        [matTooltip]="task.taskStats?.completed / task.taskStats?.total | percent"
+                                        [matTooltipPosition]="'above'"
+                                        [matTooltipClass]="'-mb-0.5'"></div>
+                                    <mat-progress-bar
+                                        class="h-0.5"
+                                        [value]="(100 * task.taskStats?.completed) / task.taskStats?.total"></mat-progress-bar>
+                                </div>
+
+                                <!-- task launch button -->
+                                <div class="px-6 py-4 text-right bg-gray-50 dark:bg-transparent">
+                                    <a
+                                        mat-stroked-button
+                                        (click)="triggerCreateTask(task)">
+                                        <span class="inline-flex items-center">
+
+                                            <!-- Not started -->
+                                            <ng-container *ngIf="task.taskStats?.inProgress === 0">
+                                                <!-- Never completed -->
+                                                <ng-container *ngIf="task.taskStats.completed === 0">
+                                                    <span>Start</span>
+                                                </ng-container>
+                                                <!-- Completed before -->
+                                                <ng-container *ngIf="task.status === taskStatusTypes.COMPLETED">
+                                                    <span>Preview</span>
+                                                </ng-container>
+                                            </ng-container>
+
+                                            <!-- Started -->
+                                            <ng-container *ngIf="task.status === taskStatusTypes.IN_PROGRESS">
+                                                <span>Continue</span>
+                                            </ng-container>
+
+                                            <mat-icon
+                                                class="ml-1.5 icon-size-5"
+                                                [svgIcon]="'heroicons_solid:arrow-small-right'"></mat-icon>
+                                        </span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+                </div>
+            </ng-container>
+
+            <!-- No Tasks -->
+            <ng-template #noTasks>
+                <div class="flex flex-auto flex-col items-center justify-center bg-gray-100 dark:bg-transparent">
+                    <mat-icon
+                        class="icon-size-24"
+                        [svgIcon]="'heroicons_outline:document-search'"></mat-icon>
+                    <div class="mt-6 text-2xl font-semibold tracking-tight text-secondary">No Tasks found!</div>
+                </div>
+            </ng-template>
+        </div>
+
+    </div>
+

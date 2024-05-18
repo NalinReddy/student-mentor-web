@@ -1,0 +1,63 @@
+<h1 mat-dialog-title>Create User</h1>
+<form [formGroup]="createUserForm" (ngSubmit)="submit()">
+    <mat-dialog-content class="user-dialog-content">
+        <div class="user-dialog-form">
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Title</mat-label>
+                <mat-select formControlName="title" [errorStateMatcher]="matcher" required>
+                    <mat-option *ngFor="let title of titles" [value]="title">{{ title }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="f.title.hasError('required')">
+                    Title is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>First Name</mat-label>
+                <input matInput type="text" formControlName="firstName" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.firstName.hasError('required')">
+                    First name is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Last Name</mat-label>
+                <input matInput type="text" formControlName="lastName" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.lastName.hasError('required')">
+                    Last name is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" [errorStateMatcher]="matcher"
+                    autocomplete="username" required>
+                <mat-error *ngIf="f.email.hasError('required')">
+                    Email is <strong>required</strong>
+                </mat-error>
+                <mat-error *ngIf="f.email.hasError('email')">
+                    Email must be valid
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-half-width" floatLabel="always">
+                <mat-label>Phone</mat-label>
+                <input type="tel" matInput placeholder="555-555-1234" formControlName="phones"
+                    [errorStateMatcher]="matcher" autocomplete="tel">
+                <mat-icon matSuffix>phone</mat-icon>
+                <mat-error *ngIf="f.phones.hasError('pattern')">
+                    Must be a valid phone number
+                </mat-error>
+            </mat-form-field>
+            
+        </div>
+    </mat-dialog-content>
+    <mat-dialog-actions class="float-right">
+        <button mat-button type="button" color="primary" (click)="dismiss()">
+            <mat-icon>cancel</mat-icon> Cancel
+        </button>
+        <button mat-button color="primary" type="submit">
+            <mat-icon>save</mat-icon> Save
+        </button>
+    </mat-dialog-actions>
+</form>

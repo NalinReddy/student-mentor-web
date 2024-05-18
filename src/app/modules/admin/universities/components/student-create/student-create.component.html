@@ -1,0 +1,123 @@
+<h1 mat-dialog-title>Create Student</h1>
+<form [formGroup]="createStudentForm" (ngSubmit)="submit()">
+    <mat-dialog-content class="user-dialog-content">
+        <div class="user-dialog-form">
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>First Name</mat-label>
+                <input matInput type="text" formControlName="firstName" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.firstName.hasError('required')">
+                    First name is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Last Name</mat-label>
+                <input matInput type="text" formControlName="lastName" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.lastName.hasError('required')">
+                    Last name is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Student ID</mat-label>
+                <input matInput type="text" formControlName="studentId" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.studentId.hasError('required')">
+                    Student ID is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>University Email</mat-label>
+                <input matInput type="text" formControlName="eduEmail" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.eduEmail.hasError('required')">
+                    University Email is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>University Password</mat-label>
+                <input matInput type="text" formControlName="eduPassword" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.eduPassword.hasError('required')">
+                    University Password is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Personal Email</mat-label>
+                <input matInput type="text" formControlName="personalEmail" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.personalEmail.hasError('required')">
+                    Personal Email is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Contact Number</mat-label>
+                <input matInput type="text" formControlName="contactNumber" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.contactNumber.hasError('required')">
+                    Contact Number is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <!-- Multi-select for assignedMentors
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Assigned Mentors</mat-label>
+                <mat-select formControlName="assignedMentors" [errorStateMatcher]="matcher" multiple>
+                    <mat-option *ngFor="let mentor of mentors" [value]="mentor.id">{{ mentor.firstName }} {{ mentor.lastName }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="f.assignedMentors.hasError('required')">
+                    Assigned mentors are <strong>required</strong>
+                </mat-error>
+            </mat-form-field> -->
+            <!-- Multi-select for courses
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Courses</mat-label>
+                <mat-select formControlName="courses" [errorStateMatcher]="matcher" multiple>
+                    <mat-option *ngFor="let course of courses" [value]="course.id">{{ course.name }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="f.courses.hasError('required')">
+                    Courses are <strong>required</strong>
+                </mat-error>
+            </mat-form-field> -->
+            <!-- Select a course -->
+            <!-- Course and mentor fields -->
+            <div formArrayName="courses" *ngFor="let courseFG of coursesCtrl.controls; let i=index">
+                <div class="flex gap-2" [formGroupName]="i">
+                    <mat-form-field appearance="outline" class="user-dialog-full-width">
+                        <mat-label>Courses</mat-label>
+                        <mat-select formControlName="course" [errorStateMatcher]="matcher" >
+                            <mat-option *ngFor="let course of courses" [value]="course.id">{{ course.name }}</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="courseFG.get('course').hasError('required')">
+                            Courses are <strong>required</strong>
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Select for assignedMentor -->
+                    <mat-form-field appearance="outline" class="user-dialog-full-width">
+                        <mat-label>Assigned Mentors</mat-label>
+                        <mat-select formControlName="assignedMentors" [errorStateMatcher]="matcher" multiple>
+                            <mat-option *ngFor="let mentor of mentors" [value]="mentor.id">{{ mentor.firstName }} {{ mentor.lastName }}</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="courseFG.get('assignedMentors').hasError('required')">
+                            Assigned mentors are <strong>required</strong>
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <!-- <p>Need to disable the prop of course which is already swected above when adding a new course field</p>
+            <p>Need to disable the saved course & assgiend fields and provide a remove/dellete button so that all the current generated tasks are also removed along with it</p> -->
+            <br>
+            <button mat-flat-button [color]="'primary'" (click)="addCourse()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+                <span class="ml-2">Add course</span>
+            </button>         
+        </div>
+    </mat-dialog-content>
+    <mat-dialog-actions class="float-right">
+        <button mat-button type="button" color="primary" (click)="dismiss()">
+            <mat-icon>cancel</mat-icon> Cancel
+        </button>
+        <button mat-button color="primary" type="submit">
+            <mat-icon>save</mat-icon> Save
+        </button>
+    </mat-dialog-actions>
+</form>

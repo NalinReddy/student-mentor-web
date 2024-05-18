@@ -1,0 +1,219 @@
+<div class="table-responsive m-4 mx-auto p-6 md:p-8">
+    <!-- Title and action buttons -->
+    <div class="flex items-center justify-between w-full mb-3">
+        <div>
+            <h2 class="text-3xl font-semibold tracking-tight leading-8">Manage Users</h2>
+            <div class="font-medium tracking-tight text-secondary">Perform certain actions on app users & keep track of mentors work status</div>
+        </div>
+        <div class="flex items-center ml-6">
+            <button
+                class="hidden sm:inline-flex ml-3"
+                mat-flat-button
+                [color]="'primary'" (click)="createUser()">
+                <mat-icon
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_solid:user-plus'"></mat-icon>
+                <span class="ml-2">Add User</span>
+            </button>
+
+            <!-- Actions menu (visible on xs) -->
+            <div class="sm:hidden">
+                <button
+                    [matMenuTriggerFor]="actionsMenu"
+                    mat-icon-button>
+                    <mat-icon [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                    <button mat-menu-item (click)="createUser()">Add User</button>
+                </mat-menu>
+            </div>
+        </div>
+    </div>
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" multiTemplateDataRows>
+        <!-- Checkbox Column -->
+        <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+                <mat-checkbox (change)="$event ? masterToggle() : null"
+                    [checked]="selection.hasValue() && isAllSelected()"
+                    [indeterminate]="selection.hasValue() && !isAllSelected()" [aria-label]="checkboxLabel()">
+                </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row">
+                <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
+                    [checked]="selection.isSelected(row)" [aria-label]="checkboxLabel(row)">
+                </mat-checkbox>
+            </td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>Email</th>
+            <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Title</th>
+            <td mat-cell *matCellDef="let element">{{ element.title }}</td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="firstName">
+            <th mat-header-cell *matHeaderCellDef>First Name</th>
+            <td mat-cell *matCellDef="let element">{{ element.firstName }}</td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="lastName">
+            <th mat-header-cell *matHeaderCellDef>Last Name</th>
+            <td mat-cell *matCellDef="let element">{{ element.lastName }}</td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="customer">
+            <th mat-header-cell *matHeaderCellDef>Company</th>
+            <td mat-cell *matCellDef="let element">{{ element.customer ? element.customer.name : "" }}</td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef>Phone Numbers</th>
+            <td mat-cell *matCellDef="let element">
+                <span *ngFor="let phone of element.phones; last as l">
+                    {{ phone.number }}{{ l ? "" : ", " }}
+                </span>
+            </td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Role</th>
+            <td mat-cell *matCellDef="let element">{{ element.role }}</td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="lastLogin">
+            <th mat-header-cell *matHeaderCellDef>Last Login</th>
+            <td mat-cell *matCellDef="let element">
+                {{ element.lastLogin | date: "short" }}
+            </td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="created">
+            <th mat-header-cell *matHeaderCellDef>Created Date</th>
+            <td mat-cell *matCellDef="let element">
+                {{ element.created | date: "short" }}
+            </td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="edit">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let element">
+                <button [disabled]="!(element.id === loggedInUserId || isLoggedInUserSuperAdmin || (isLoggedInUserAdmin ? element.role !== appRoles.Admin && element.role !== appRoles.SuperAdmin : false))" mat-icon-button color="primary" aria-label="edit button" (click)="createUser(element)">
+                    <mat-icon>edit</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
+        <!-- Column -->
+        <ng-container matColumnDef="delete">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let element">
+                <mat-slide-toggle color="primary" [checked]="element.active" [disabled]="!(element.id !== loggedInUserId && (isLoggedInUserSuperAdmin || (isLoggedInUserAdmin ? element.role !== appRoles.Admin && element.role !== appRoles.SuperAdmin : false)))" (change)="_toggleActivateUser($event, element)">
+                    <!-- {{element.active ? 'Deactivate' : 'Activate'}} -->
+                </mat-slide-toggle>
+            </td>
+        </ng-container>
+
+        <!-- Column for expand/collapse button -->
+        <ng-container matColumnDef="expand">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let element">
+                <button mat-icon-button color="primary" (click)="toggleExpansion(element)">
+                    <mat-icon>{{ element.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="expandedDetail">
+            <td mat-cell *matCellDef="let mainElement" [attr.colspan]="displayedColumns.length">
+                
+                <table  mat-table [dataSource]="memberDataSources[mainElement.id]" class="m-4" multiTemplateDataRows>
+                    <!-- Checkbox Column -->
+                    <ng-container matColumnDef="add">
+                        <th mat-header-cell *matHeaderCellDef>
+                            <button mat-flat-button [color]="'primary'" (click)="createMember(mainElement.id)">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+                                <span class="ml-2">Add Member</span>
+                            </button>
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                        </td>
+                    </ng-container>
+            
+                    <!-- Column -->
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef>Email</th>
+                        <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+                    </ng-container>
+            
+                    <!-- Column -->
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let element">{{ element.firstName }} {{ element.lastName }}</td>
+                    </ng-container>
+            
+                    <!-- Column -->
+                    <ng-container matColumnDef="created">
+                        <th mat-header-cell *matHeaderCellDef>Created Date</th>
+                        <td mat-cell *matCellDef="let element">
+                            {{ element.created | date: "short" }}
+                        </td>
+                    </ng-container>
+            
+                    <!-- Column -->
+                    <ng-container matColumnDef="edit">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let element">
+                            <button [disabled]="!(element.id === loggedInUserId || isLoggedInUserSuperAdmin || (isLoggedInUserAdmin ? element.role !== appRoles.Admin && element.role !== appRoles.SuperAdmin : false))" mat-icon-button color="primary" aria-label="edit button" (click)="openUserEditDialog(element)">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+            
+                    <!-- Column -->
+                    <ng-container matColumnDef="delete">
+                        <th mat-header-cell *matHeaderCellDef>Status </th>
+                        <td mat-cell *matCellDef="let element">
+                            {{memberDataSources[mainElement.id]?.length}}
+                            <mat-slide-toggle color="primary" [checked]="element.active" [disabled]="!(element.id !== loggedInUserId && (isLoggedInUserSuperAdmin || (isLoggedInUserAdmin ? element.role !== appRoles.Admin && element.role !== appRoles.SuperAdmin : false)))" (change)="_toggleActivateUser($event, element)">
+                                <!-- {{element.active ? 'Deactivate' : 'Activate'}} -->
+                            </mat-slide-toggle>
+                        </td>
+                    </ng-container>
+                    <!-- <ng-container matColumnDef="noMembers">
+                        <td mat-cell *matCellDef="let element" [attr.colspan]="memberColumns.length">
+                            {{!element ? 'No members to display' : '' }}
+                            </td>
+                    </ng-container> -->
+
+                    <tr mat-header-row *matHeaderRowDef="memberColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: memberColumns" ></tr>
+                    <!-- <tr mat-row *matRowDef="let row; columns: ['noMembers']"></tr> -->
+                </table> 
+               
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" ></tr>
+        <!-- Expansion panel for showing members -->
+        <tr mat-row class="user-detail-row user-element-detail" *matRowDef="let row; columns: ['expandedDetail']"  [@detailExpand]="row?.expanded ? 'expanded' : 'collapsed'"></tr>
+
+    </table>
+    <mat-paginator class="d-flex justify-content-center p-2" #paginator [length]="100" [pageSize]="25"
+        [pageSizeOptions]="[5, 10, 25, 100]" showFirstLastButtons>
+    </mat-paginator>
+</div>

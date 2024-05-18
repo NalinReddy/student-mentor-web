@@ -1,0 +1,86 @@
+<h1 mat-dialog-title>Create Course</h1>
+<form [formGroup]="createCourseForm" (ngSubmit)="submit()">
+    <mat-dialog-content class="user-dialog-content">
+        <div class="user-dialog-form">
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Course Name</mat-label>
+                <input matInput type="text" formControlName="name" [errorStateMatcher]="matcher" required>
+                <mat-error *ngIf="f.name.hasError('required')">
+                    Course name is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Term/Semester </mat-label>
+                <mat-select formControlName="term" [errorStateMatcher]="matcher" required>
+                    <mat-option *ngFor="let term of terms" [value]="term.id">{{ term.name }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="f.term.hasError('required')">
+                    Course term is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Professors</mat-label>
+                <mat-select formControlName="professor" [errorStateMatcher]="matcher" >
+                    <ng-container *ngFor="let professor of professors">
+                        <mat-option [value]="professor.id" >{{ professor.title + '. ' + professor.firstName + ' ' + professor.lastName }}</mat-option>
+                    </ng-container>
+                </mat-select>
+                <mat-error *ngIf="f.professor.hasError('required')">
+                    Professor is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+            <br>
+            <!-- Adding termPeriod controls -->
+            <div formGroupName="termPeriod">
+                <mat-form-field appearance="outline" class="user-dialog-full-width">
+                    <mat-label>Term Type</mat-label>
+                    <mat-select formControlName="type" [errorStateMatcher]="matcher" (selectionChange)="onTermTypeChange($event.value)" required>
+                        <mat-option *ngFor="let type of courseTypes" [value]="type">{{ type }}</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="f.termPeriod.get('type').hasError('required')">
+                        Term type is <strong>required</strong>
+                    </mat-error>
+                </mat-form-field>
+                <br>
+                <mat-form-field appearance="outline" class="user-dialog-full-width">
+                    <mat-label>Start Week</mat-label>
+                    <mat-select formControlName="startWeek" [errorStateMatcher]="matcher" required>
+                        <mat-option *ngFor="let week of availableWeeks" [value]="week">{{ week }}</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="f.termPeriod.get('startWeek').hasError('required')">
+                        Start week is <strong>required</strong>
+                    </mat-error>
+                </mat-form-field>
+                <br>
+                <mat-form-field appearance="outline" class="user-dialog-full-width">
+                    <mat-label>End Week</mat-label>
+                    <mat-select formControlName="endWeek" [errorStateMatcher]="matcher" required>
+                        <mat-option *ngFor="let week of availableWeeks" [value]="week">{{ week }}</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="f.termPeriod.get('endWeek').hasError('required')">
+                        End week is <strong>required</strong>
+                    </mat-error>
+                </mat-form-field>
+            </div>
+            
+            <br>
+            <mat-form-field appearance="outline" class="user-dialog-full-width">
+                <mat-label>Price</mat-label>
+                <input matInput type="text" formControlName="price" [errorStateMatcher]="matcher" >
+                <mat-error *ngIf="f.price.hasError('required')">
+                    Price is <strong>required</strong>
+                </mat-error>
+            </mat-form-field>
+        </div>
+    </mat-dialog-content>
+    <mat-dialog-actions class="float-right">
+        <button mat-button type="button" color="primary" (click)="dismiss()">
+            <mat-icon>cancel</mat-icon> Cancel
+        </button>
+        <button mat-button color="primary" type="submit">
+            <mat-icon>save</mat-icon> Save
+        </button>
+    </mat-dialog-actions>
+</form>

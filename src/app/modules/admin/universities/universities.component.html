@@ -1,0 +1,275 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Main -->
+    <div class="flex-auto p-6 sm:p-10" *ngIf="!universities?.length">
+
+        <!-- CONTENT GOES HERE -->
+        <app-no-data-found [title]="'No university found'" [content]="'Please add a university from below.'">
+            <button mat-stroked-button color="primary" (click)="createUniversity()">Add university</button>
+        </app-no-data-found>
+
+    </div>
+
+    <ng-container *ngIf="universities?.length">
+        <!-- Header -->
+        <div class="bg-card">
+            <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8">
+                <div class="flex flex-col sm:flex-row flex-auto sm:items-center min-w-0 my-8 sm:my-12">
+                    <!-- Avatar and name -->
+                    <div class="flex flex-auto items-center min-w-0">
+                        
+                        <div class="flex-0 w-16 h-16 rounded-full overflow-hidden">
+                            <img *ngIf="loggedInUser?.avatar" class="w-full h-full object-cover" src="assets/images/avatars/brian-hughes.jpg">
+                            <div *ngIf="!loggedInUser?.avatar" class="flex items-center justify-center w-full h-full rounded-full text-3xl uppercase bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                {{loggedInUser?.firstName?.charAt(0)}}{{loggedInUser?.lastName?.charAt(0)}}
+                            </div>
+                        </div>
+                        <div class="flex flex-col min-w-0 ml-4">
+                            <ng-container>
+                                <div
+                                    class="text-2xl md:text-5xl font-semibold tracking-tight leading-7 md:leading-snug truncate">
+                                    Welcome back, {{loggedInUser?.firstName}}!</div>
+                            </ng-container>
+                            <div class="flex items-center">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:bell'"></mat-icon>
+                                <div class="ml-1.5 leading-6 truncate text-secondary">You are having 15 new tasks</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Actions -->
+                    <div class="flex items-center mt-6 sm:mt-0 sm:ml-2 space-x-3">
+                        <button class="bg-accent" mat-flat-button [color]="'accent'" (click)="createTopic()">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:stop-circle'"></mat-icon>
+                            <span class="ml-2">Add Topic</span>
+                        </button>
+                        <button *ngIf="isLoggedInUserAdmin || isLoggedInUserSuperAdmin" mat-flat-button [color]="'primary'" (click)="createUniversity()">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+                            <span class="ml-2">Add University</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Project selector -->
+                <div class="relative flex self-start pt-2 pb-1 pl-5 pr-4 cursor-pointer overflow-hidden rounded-t-xl border border-b-0 bg-default"
+                    matRipple [matMenuTriggerFor]="projectsMenu">
+                    <div class="flex items-center">
+                        <div class="overflow-hidden">
+                            <div class="font-medium leading-6 truncate">{{selectedUniversity?.name}}</div>
+                        </div>
+                        <div class="flex items-center justify-center pl-2">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:chevron-down'"></mat-icon>
+                        </div>
+                    </div>
+                    <mat-menu #projectsMenu="matMenu" [xPosition]="'before'">
+                        <button *ngFor="let university of universities" mat-menu-item (click)="onChangeOfUniversity(university)">{{university.name}}
+                        </button>
+                    </mat-menu>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="flex-auto border-t -mt-px pt-4 sm:pt-6">
+            <div class="w-full max-w-screen-xl mx-auto">
+                <!-- Tabs -->
+                <mat-tab-group [selectedIndex]="selectedTabIndex" class="sm:px-2" mat-stretch-tabs="false" [animationDuration]="'0'">
+
+                    <!-- Home -->
+                    <mat-tab label="Home">
+                        <ng-template matTabContent>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full min-w-0">
+                                <!-- Summary -->
+                                <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                    <div class="flex items-start justify-between">
+                                        <div class="text-lg font-medium tracking-tight leading-6 truncate">Task Summary</div>
+                                        <div class="ml-2 -mt-2 -mr-3">
+                                            <button mat-icon-button [matMenuTriggerFor]="summaryMenu">
+                                                <mat-icon class="icon-size-5"
+                                                    [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
+                                            </button>
+                                            <mat-menu #summaryMenu="matMenu">
+                                                <button mat-menu-item>Yesterday</button>
+                                                <button mat-menu-item>2 days ago</button>
+                                                <button mat-menu-item>3 days ago</button>
+                                            </mat-menu>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-center mt-2">
+                                        <div
+                                            class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-blue-500">
+                                            21</div>
+                                        <div class="text-lg font-medium text-blue-600 dark:text-blue-500">Due Tasks
+                                        </div>
+                                        <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
+                                            <div class="text-md font-medium truncate">Completed:</div>
+                                            <div class="ml-1.5 text-lg font-semibold">13</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Overdue -->
+                                <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                    <div class="flex items-start justify-between">
+                                        <div class="text-lg font-medium tracking-tight leading-6 truncate">Overdue</div>
+                                        <div class="ml-2 -mt-2 -mr-3">
+                                            <button mat-icon-button [matMenuTriggerFor]="overdueMenu">
+                                                <mat-icon class="icon-size-5"
+                                                    [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
+                                            </button>
+                                            <mat-menu #overdueMenu="matMenu">
+                                                <button mat-menu-item>Yesterday</button>
+                                                <button mat-menu-item>2 days ago</button>
+                                                <button mat-menu-item>3 days ago</button>
+                                            </mat-menu>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-center mt-2">
+                                        <div
+                                            class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-red-500">
+                                            17</div>
+                                        <div class="text-lg font-medium text-red-600 dark:text-red-500">Tasks</div>
+                                        <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
+                                            <div class="text-md font-medium truncate">From yesterday:</div>
+                                            <div class="ml-1.5 text-lg font-semibold">9</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Issues -->
+                                <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                    <div class="flex items-start justify-between">
+                                        <div class="text-lg font-medium tracking-tight leading-6 truncate">Topics Summary</div>
+                                        <div class="ml-2 -mt-2 -mr-3">
+                                            <button mat-icon-button [matMenuTriggerFor]="issuesMenu">
+                                                <mat-icon class="icon-size-5"
+                                                    [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
+                                            </button>
+                                            <mat-menu #issuesMenu="matMenu">
+                                                <button mat-menu-item>Yesterday</button>
+                                                <button mat-menu-item>2 days ago</button>
+                                                <button mat-menu-item>3 days ago</button>
+                                            </mat-menu>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-center mt-2">
+                                        <div
+                                            class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-amber-500">
+                                            24</div>
+                                        <div class="text-lg font-medium text-amber-600 dark:text-amber-500">Due Topics</div>
+                                        <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
+                                            <div class="text-md font-medium truncate">Closed today:</div>
+                                            <div class="ml-1.5 text-lg font-semibold">19</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Features -->
+                                <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                    <div class="flex items-start justify-between">
+                                        <div class="text-lg font-medium tracking-tight leading-6 truncate">Topics Overdue
+                                        </div>
+                                        <div class="ml-2 -mt-2 -mr-3">
+                                            <button mat-icon-button [matMenuTriggerFor]="featuresMenu">
+                                                <mat-icon class="icon-size-5"
+                                                    [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
+                                            </button>
+                                            <mat-menu #featuresMenu="matMenu">
+                                                <button mat-menu-item>Yesterday</button>
+                                                <button mat-menu-item>2 days ago</button>
+                                                <button mat-menu-item>3 days ago</button>
+                                            </mat-menu>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-center mt-2">
+                                        <div
+                                            class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-red-500">
+                                            38</div>
+                                        <div class="text-lg font-medium text-red-600 dark:text-red-500">Topics
+                                        </div>
+                                        <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
+                                            <div class="text-md font-medium truncate">Completed:</div>
+                                            <div class="ml-1.5 text-lg font-semibold">16</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </ng-template>
+                    </mat-tab>
+
+                     <!-- College terms -->
+                     <mat-tab label="Term" *ngIf="isLoggedInUserAdmin || isLoggedInUserSuperAdmin">
+                        <ng-template matTabContent>
+                            <div class="grid grid-cols-1 sm:grid-cols-6 gap-6 w-full min-w-0">
+                                <!-- Courses details -->
+                                <div class="sm:col-span-6 flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                    <app-terms [selectedUniversity]="selectedUniversity"></app-terms>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </mat-tab>
+
+                    <!-- Professors -->
+                    <mat-tab label="Professors" *ngIf="isLoggedInUserAdmin || isLoggedInUserSuperAdmin">
+                        <ng-template matTabContent>
+                            <div class="grid grid-cols-1 sm:grid-cols-6 gap-6 w-full min-w-0">
+                                <!-- Professors details -->
+                                <div class="sm:col-span-6 flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                    <app-professors [selectedUniversity]="selectedUniversity"></app-professors>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </mat-tab>
+
+                        <!-- Courses -->
+                    <mat-tab label="Courses" *ngIf="isLoggedInUserAdmin || isLoggedInUserSuperAdmin">
+                        <ng-template matTabContent>
+                            <div class="grid grid-cols-1 sm:grid-cols-6 gap-6 w-full min-w-0">
+                                <!-- Courses details -->
+                                <div class="sm:col-span-6 flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                    <app-courses [selectedUniversity]="selectedUniversity"></app-courses>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </mat-tab>
+
+                    <!-- Students -->
+                    <mat-tab>
+                        <ng-template mat-tab-label>
+                            <span class="inline-flex items-center space-x-2">
+                                <span class="">Students</span>
+                            </span>
+                        </ng-template>
+                        <ng-template matTabContent>
+                            <div class="grid grid-cols-1 sm:grid-cols-6 gap-6 w-full min-w-0">
+                                <!-- Students -->
+                                <div class="sm:col-span-6 flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                    <app-students [selectedUniversity]="selectedUniversity"></app-students>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </mat-tab>
+
+                    <!-- Team -->
+                    <mat-tab *ngIf="isLoggedInUserAdmin || isLoggedInUserSuperAdmin">
+                        <ng-template mat-tab-label>
+                            <span class="inline-flex items-center space-x-2">
+                                <span class="">Handler Allocation</span>
+                                <!-- <span class="px-2 py-1 text-sm rounded-full bg-primary-100 text-on-primary-100">9</span> -->
+                            </span>
+                        </ng-template>
+                        <ng-template matTabContent>
+                            <app-team [selectedUniversity]="selectedUniversity"></app-team>
+                        </ng-template>
+                    </mat-tab>
+
+                  <!-- tasks -->
+                  <mat-tab label="Tasks">
+                    <ng-template matTabContent>
+                        <app-tasks [selectedUniversity]="selectedUniversity"></app-tasks>
+                    </ng-template>
+                </mat-tab>
+
+                </mat-tab-group>
+            </div>
+        </div>
+    </ng-container>
+
+
+</div>

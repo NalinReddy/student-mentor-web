@@ -1,0 +1,215 @@
+<div class="text-lg font-medium tracking-tight leading-6 truncate flex justify-between">
+    List of students
+    <button class="mr-3" mat-flat-button [color]="'primary'" (click)="createStudent()">
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+        <span class="ml-2">Add Student</span>
+    </button>
+</div>
+<div class="flex flex-col flex-auto mt-2 overflow-x-auto">
+    <!-- Filters -->
+    <div class="flex flex-col sm:flex-row items-center justify-between w-full max-w-xs sm:max-w-none" [formGroup]="filterStudentsForm">
+        <!-- <mat-form-field
+            class="w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4"
+            [subscriptSizing]="'dynamic'">
+            <mat-icon
+                matPrefix
+                class="icon-size-5"
+                [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+            <input formControlName="searchText"
+                placeholder="Search by title or description"
+                matInput
+                #query>
+        </mat-form-field> -->
+        <mat-form-field appearance="outline" class="w-full sm:w-72 mr-2" [subscriptSizing]="'dynamic'">
+            <mat-label>Term Type</mat-label>
+            <mat-select formControlName="termPeriod" >
+                <mat-option [value]="'all'">All</mat-option>   
+                <mat-option *ngFor="let type of courseTypes" [value]="type">{{ type }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+       <mat-form-field appearance="outline" class="w-full sm:w-72 mr-2" [subscriptSizing]="'dynamic'">
+        <mat-label>Courses</mat-label>
+        <mat-select [value]="'all'" formControlName="course" [value]="'all'">
+            <mat-option [value]="'all'">All</mat-option>   
+             <mat-option *ngFor="let course of courses" [value]="course.id">{{ course.name }}</mat-option>
+        </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full sm:w-72 mr-2" [subscriptSizing]="'dynamic'">
+            <mat-label>Term/Semester</mat-label>
+            <mat-select formControlName="term" >
+                <mat-option [value]="'all'">All</mat-option>   
+                <mat-option *ngFor="let term of terms" [value]="term.id">{{ term.name }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full sm:w-72 mr-2" [subscriptSizing]="'dynamic'">
+            <mat-label>Professor</mat-label>
+            <mat-select [value]="'all'" formControlName="professor">
+                <mat-option [value]="'all'">All</mat-option>   
+                <mat-option *ngFor="let professor of professors" [value]="professor.id">{{ professor.title }}.{{ professor.firstName }} {{ professor.lastName }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <table class="min-w-240 overflow-y-visible" mat-table [dataSource]="students">
+
+        <!-- Type -->
+        <ng-container matColumnDef="details" sticky>
+            <th mat-header-cell *matHeaderCellDef>
+                
+            </th>
+            <td mat-cell *matCellDef="let student" class="bg-white dark:bg-inherit">
+                <button mat-icon-button color="primary" aria-label="details button" (click)="openDetails(student)">
+                    <mat-icon>info</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
+        <!-- Type -->
+        <ng-container matColumnDef="studentId" sticky>
+            <th mat-header-cell *matHeaderCellDef>
+                Student ID
+            </th>
+            <td mat-cell *matCellDef="let student" class="bg-white dark:bg-inherit">
+                <span class="flex items-center">
+                    <span class="w-2 h-2 rounded-full"></span>
+                    <span class="ml-3 leading-4">{{student.studentId}}</span>
+                </span>
+            </td>
+        </ng-container>
+
+        <!-- name -->
+        <ng-container matColumnDef="firstName">
+            <th mat-header-cell *matHeaderCellDef>
+                Name
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    {{student.firstName}} {{student.lastName}}
+                </span>
+            </td>
+        </ng-container>
+
+        <!-- edu email -->
+        <ng-container matColumnDef="eduEmail">
+            <th mat-header-cell *matHeaderCellDef>
+                Email
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    {{student.eduEmail}}
+                </span>
+            </td>
+        </ng-container>
+
+        <!-- edu email -->
+        <ng-container matColumnDef="eduPassword">
+            <th mat-header-cell *matHeaderCellDef>
+                Password
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    {{student.eduPassword}}
+                </span>
+            </td>
+        </ng-container>
+
+        <!-- edu email -->
+        <ng-container matColumnDef="personalEmail">
+            <th mat-header-cell *matHeaderCellDef>
+                Personal Email
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    {{student.personalEmail}}
+                </span>
+            </td>
+        </ng-container>
+
+        <!-- Contact NUmber -->
+        <ng-container matColumnDef="contactNumber">
+            <th mat-header-cell *matHeaderCellDef>
+                Contact Number
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    {{student.contactNumber}}
+                </span>
+            </td>
+        </ng-container>
+
+        <!-- Mentors -->
+        <!-- <ng-container matColumnDef="assignedMentors">
+            <th mat-header-cell *matHeaderCellDef>
+                Mentors assigned
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    {{student.assignedMentors}}
+                </span>
+            </td>
+        </ng-container> -->
+
+        <!-- Courses -->
+        <!-- <ng-container matColumnDef="courses">
+            <th mat-header-cell *matHeaderCellDef>
+                Courses
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    {{student.courses}}
+                </span>
+            </td>
+        </ng-container> -->
+
+        <!-- university -->
+        <ng-container matColumnDef="university">
+            <th mat-header-cell *matHeaderCellDef>
+                University
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    {{student.university?.name}}
+                </span>
+            </td>
+        </ng-container>
+
+        <!-- tracking -->
+        <!-- <ng-container matColumnDef="tracking">
+            <th mat-header-cell *matHeaderCellDef>
+                Tracking
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                   Created at: {{student.tracking?.createdDate | date: 'dd MMM yyyy hh:mm a'}} by {{student.tracking?.createdBy}}
+                </span>
+            </td>
+        </ng-container> -->
+
+         <!-- Column Edit-->
+         <ng-container matColumnDef="edit">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let student">
+                <button mat-icon-button color="primary" aria-label="edit button" (click)="createStudent(student)">
+                    <mat-icon>edit</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
+        <!-- active -->
+        <ng-container matColumnDef="active">
+            <th mat-header-cell *matHeaderCellDef>
+                Active
+            </th>
+            <td mat-cell *matCellDef="let student">
+                <span class="font-medium text-right">
+                    <mat-slide-toggle
+                        class="mt-8 sm:mt-0 sm:ml-auto"
+                        [color]="'primary'" [checked]="student.active">
+                    </mat-slide-toggle>
+                </span>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+    </table>
+</div>

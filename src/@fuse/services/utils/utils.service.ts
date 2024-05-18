@@ -1,0 +1,83 @@
+import { Injectable } from '@angular/core';
+import { IsActiveMatchOptions } from '@angular/router';
+import { DateTime } from 'luxon';
+
+@Injectable({providedIn: 'root'})
+export class FuseUtilsService
+{
+    /**
+     * Constructor
+     */
+    constructor()
+    {
+    }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Accessors
+    // -----------------------------------------------------------------------------------------------------
+
+    /**
+     * Get the equivalent "IsActiveMatchOptions" options for "exact = true".
+     */
+    get exactMatchOptions(): IsActiveMatchOptions
+    {
+        return {
+            paths       : 'exact',
+            fragment    : 'ignored',
+            matrixParams: 'ignored',
+            queryParams : 'exact',
+        };
+    }
+
+    /**
+     * Get the equivalent "IsActiveMatchOptions" options for "exact = false".
+     */
+    get subsetMatchOptions(): IsActiveMatchOptions
+    {
+        return {
+            paths       : 'subset',
+            fragment    : 'ignored',
+            matrixParams: 'ignored',
+            queryParams : 'subset',
+        };
+    }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Public methods
+    // -----------------------------------------------------------------------------------------------------
+
+    /**
+     * Generates a random id
+     *
+     * @param length
+     */
+    randomId(length: number = 10): string
+    {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let name = '';
+
+        for ( let i = 0; i < 10; i++ )
+        {
+            name += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        return name;
+    }
+    /**
+     *
+     *
+     * @param {*} startDate
+     * @return {*} 
+     * @memberof FuseUtilsService
+     */
+    getCurrentWeek(startDate) {
+        const startOfSemester = DateTime.fromISO(startDate);
+        const currentDate = DateTime.now();
+        
+        // Calculate the difference in weeks
+        const diffInWeeks = Math.floor(currentDate.diff(startOfSemester, 'weeks').weeks);
+        console.log("current week of the course from satrt date as", startDate, diffInWeeks + 1)
+        // Add 1 because weeks are zero-indexed
+        return diffInWeeks + 1;
+    }
+}

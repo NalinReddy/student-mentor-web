@@ -1,0 +1,69 @@
+<div class="text-lg font-medium tracking-tight leading-6 truncate flex justify-between">
+    Professor
+    <button class="mr-3" mat-flat-button [color]="'primary'" (click)="createProfessor()">
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+        <span class="ml-2">Add Professor</span>
+    </button>
+</div>
+<div class="flex flex-col flex-auto mt-2 overflow-x-auto">
+    <table class="min-w-240 overflow-y-visible" mat-table [dataSource]="professors">
+
+        <!-- Name -->
+        <ng-container matColumnDef="title" sticky>
+            <th mat-header-cell *matHeaderCellDef>
+                Name
+            </th>
+            <td mat-cell *matCellDef="let professor">
+                <span class="leading-4">{{professor.title}} {{professor.firstName}} {{professor.lastName}}</span>
+            </td>
+        </ng-container>
+
+        <!-- tracking -->
+        <ng-container matColumnDef="tracking">
+            <th mat-header-cell *matHeaderCellDef>
+                Tracking
+            </th>
+            <td mat-cell *matCellDef="let professor">
+                <span class="font-medium" *ngIf="professor.tracking?.createdDate">
+                   Created on {{professor.tracking?.createdDate | date: 'dd MMM yyyy hh:mm a'}} by {{professor.tracking?.createdBy}}
+                </span>
+                <span class="font-medium" *ngIf="professor.tracking?.lastUpdatedDate">
+                    <br>
+                    Modified on {{professor.tracking?.lastUpdatedDate | date: 'dd MMM yyyy hh:mm a'}} by {{professor.tracking?.lastUpdatedBy}}
+                 </span>
+                <span class="font-medium" *ngIf="professor.tracking?.deletedDate">
+                 <br>
+                    Deleted on {{professor.tracking?.deletedDate | date: 'dd MMM yyyy hh:mm a'}} by {{professor.tracking?.deletedBy}}
+                </span>
+            </td>
+        </ng-container>
+
+         <!-- Column Edit-->
+         <ng-container matColumnDef="edit">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let professor">
+                <button mat-icon-button color="primary" aria-label="edit button" (click)="createProfessor(professor)">
+                    <mat-icon>edit</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
+        <!-- active -->
+        <ng-container matColumnDef="active">
+            <th mat-header-cell *matHeaderCellDef>
+                Active
+            </th>
+            <td mat-cell *matCellDef="let professor">
+                <span class="font-medium">
+                    <mat-slide-toggle
+                        class="mt-8 sm:mt-0 sm:ml-auto"
+                        [color]="'primary'" [checked]="professor.active">
+                    </mat-slide-toggle>
+                </span>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+    </table>
+</div>

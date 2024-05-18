@@ -1,0 +1,22 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Main -->
+    <div class="flex-auto p-6 sm:p-10">
+
+        <!-- CONTENT GOES HERE -->
+        <div class="h-400 min-h-400 max-h-400 border-2 border-dashed border-gray-300 rounded-2xl">
+            <div class="flex flex-col flex-auto items-center justify-start h-full p-6 sm:p-10">
+            <!-- @formatter:off -->
+            <div class="w-full max-w-[24rem]">
+                <img src="assets/icons/no-data-amico.svg" alt="">
+            </div>
+            <!-- @formatter:on -->
+            <div class="mt-12 sm:mt-24 text-4xl md:text-7xl font-extrabold tracking-tight leading-tight md:leading-none text-center">{{title}}</div>
+            <div class="mt-2 text-lg md:text-xl font-medium tracking-tight text-center text-secondary">{{content}}</div>
+                <ng-content></ng-content>
+            </div>
+        </div>
+
+    </div>
+
+</div>

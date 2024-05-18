@@ -1,0 +1,12 @@
+.element-row.expanded-row {
+    border-bottom-color: transparent;
+}
+
+.element-row mat-cell {
+    /* position: relative; */
+    border-bottom-width: 0;
+}
+
+.mat-mdc-table .mat-mdc-header-cell {
+    text-align: center;
+}

@@ -1,0 +1,92 @@
+<div *ngIf="mentors?.length" class="mb-4" [formGroup]="filterTasksForm">
+    <!-- Multi-select for assignedMentors -->
+    <mat-form-field class="w-full sm:w-72 mt-4 sm:mt-0 sm:ml-4" [subscriptSizing]="'dynamic'">
+        <mat-label>Mentor</mat-label>
+        <mat-select formControlName="mentorAssigned">
+            <!-- <mat-option [value]="'all'">All</mat-option>    -->
+            <mat-option *ngFor="let mentor of mentors" [value]="mentor._id">{{ mentor.firstName }} {{ mentor.lastName }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <!-- Multi-select for Week -->
+    <mat-form-field class="w-full sm:w-36 sm:mt-0 sm:ml-4 mr-2" [subscriptSizing]="'dynamic'">
+        <mat-label>Week</mat-label>
+        <mat-select formControlName="week"  >
+            <mat-option value="all" selected>All</mat-option>
+            <mat-option *ngFor="let week of weeks" [value]="week">{{ week }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field class="w-full sm:w-72 sm:mt-0 sm:ml-4 mr-2" [subscriptSizing]="'dynamic'">
+        <mat-label>Term/Semester </mat-label>
+        <mat-select formControlName="term" required>
+            <mat-option *ngFor="let term of terms" [value]="term.id">{{ term.name }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <div>
+        <!-- <table *ngIf="showTable">
+            <tr>
+                <th>Week</th>
+                <th>PostedBy</th>
+                <th>Subject</th>
+                <th>Topics</th>
+            </tr>
+            <ng-container >
+                <tr >
+                    <td rowspan="2">Week1</td>
+                    <td rowspan="2">ajith</td>
+                    <td>Chemistry</td>
+                    <td>topics</td>
+                </tr>
+                <tr >
+                    <td>Sai</td>
+                    <td>mathematics</td>
+                    <td>topics</td>
+                </tr>
+                <tr >
+                    <td >Week2</td>
+                    <td>postedby</td>
+                    <td>physics</td>
+                    <td>topics</td>
+                </tr>
+            </ng-container>
+        </table> -->
+        <table class="customStyles bg-white mt-3">
+            <tr>
+                <th>Week</th>
+                <th>Posted by</th>
+                <th>Subject</th>
+                <th>Topics</th>
+                <th>Count</th>
+                <th>Total</th>
+            </tr>
+            <ng-container *ngFor="let week of weeksArr; let i = index">
+                <tr *ngFor="let task of getAllTopicsByWeek(week); let taskId = index">
+                    <td *ngIf="taskId === 0" [attr.rowspan]="getAllTopicsByWeek(week).length">Week{{week}}</td>
+                    <td *ngIf="taskId === 0 || (taskId > 0 && getAllTopicsByWeek(week)[taskId - 1]?.postedBy?.id !== task?.postedBy?.id)" [attr.rowspan]="getPostedByCountByWeek(week, task.postedBy?.id).length"> {{task.postedBy?.id ? (task.postedBy?.title + task.postedBy?.firstName + ' ' + task.postedBy?.lastName) : 'NA'}}</td>
+                    <td *ngIf="taskId === 0 || (taskId > 0 && getAllTopicsByWeek(week)[taskId - 1]?.postedBy?.id !== task?.postedBy?.id)" [attr.rowspan]="getCourseCountByPostedByAndWeek(week, task.postedBy?.id, task.course.id).length">{{task.course.name}}</td>
+                    <td>{{task.topic.name}}</td>
+                    <td>{{task.count}}</td>
+                    <td *ngIf="taskId === 0 || (taskId > 0 && getAllTopicsByWeek(week)[taskId - 1]?.postedBy?.id !== task?.postedBy?.id)" [attr.rowspan]="getCourseCountByPostedByAndWeek(week, task.postedBy?.id, task.course.id).length">{{getCourseTopicsCountByPostedByAndWeek(week, task.postedBy?.id, task.course.id)}}</td>
+                </tr>
+            </ng-container>
+            <!-- <ng-container *ngFor="let week of weeksArr; let i = index">
+                <tr *ngFor="let task of getAllTopicsByWeek(week); let taskId = index">
+                    <td *ngIf="taskId === 0" [attr.rowspan]="getAllTopicsByWeek(week).length">Week{{week}}</td>
+                    <td *ngIf="taskId === 0 || (taskId > 0 && getAllTopicsByWeek(week)[taskId - 1]?.postedBy?.id !== task?.postedBy?.id)" [attr.rowspan]="getPostedByCountByWeek(week, task.postedBy?.id).length"> {{task.postedBy?.id ? (task.postedBy?.title + task.postedBy?.firstName + ' ' + task.postedBy?.lastName) : 'NA'}}</td>
+                    <td *ngIf="taskId === 0 || (taskId > 0 && getAllTopicsByWeek(week)[taskId - 1]?.postedBy?.id !== task?.postedBy?.id)" [attr.rowspan]="getCourseCountByPostedByAndWeek(week, task.postedBy?.id, task.course.id).length">{{task.course.name}}</td>
+                    <td>{{task.topic.name}}</td>
+                    <td>{{task.count}}</td>
+                    <td *ngIf="taskId === 0 || (taskId > 0 && getAllTopicsByWeek(week)[taskId - 1]?.postedBy?.id !== task?.postedBy?.id)" [attr.rowspan]="getCourseCountByPostedByAndWeek(week, task.postedBy?.id, task.course.id).length">{{getCourseTopicsCountByPostedByAndWeek(week, task.postedBy?.id, task.course.id)}}</td>
+                </tr>
+            </ng-container> -->
+        </table>
+    </div>
+
+</div>
+
+<div *ngIf="!mentors?.length">
+    <app-no-data-found [title]="'No mentors assigned to this unievrsity yet'"
+        [content]="'Please create a task for a student with in this university.'">
+        <!-- <button mat-stroked-button color="primary" (click)="createUniversity()">Add university</button> -->
+    </app-no-data-found>
+</div>
