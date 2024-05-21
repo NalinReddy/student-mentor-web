@@ -7,7 +7,7 @@
                 <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
                 <input placeholder="Search by student id or name" matInput #query>
             </mat-form-field>
-            <button mat-raised-button color="primary" (click)="filterByQuery(query.value)">Search</button>
+            <button mat-raised-button color="primary" (click)="filterByQuery(query.value)"><mat-icon>search</mat-icon> Search</button>
         </div>
     </div>
     <div class="mt-2 overflow-x-auto">
@@ -171,12 +171,12 @@
         </table>
 
         <div>
-            <table class="customStyles bg-white mt-3">
+            <table class="customStyles bg-white dark:bg-inherit mt-3">
                 <tr>
                     <th>Week</th>
                     <th>Topic</th>
-                    <th>Discussion replies</th>
-                    <th>Replies status</th>
+                    <th class="w-[38px]">Replies</th>
+                    <!-- <th>Replies status</th> -->
                     <th>Due date</th>
                     <th>Posted date</th>
                     <th>Posted by</th>
@@ -187,7 +187,7 @@
                         <td *ngIf="taskId === 0" [attr.rowspan]="getAllTopicsByWeek(week).length">Week{{week}}</td>
                         <td>{{task.topic.name}}</td>
                         <td><span *ngIf="task.discussions; else NoFieldValue">{{task.discussions}}</span></td>
-                        <td><span *ngIf="task.repliesStatus; else NoFieldValue">{{task.repliesStatus}}</span></td>
+                        <!-- <td><span *ngIf="task.repliesStatus; else NoFieldValue">{{task.repliesStatus}}</span></td> -->
                         <td> <span *ngIf="task.dueDate; else NoFieldValue">{{task.dueDate | date: 'dd MMM yyyy'}}</span></td>
                         <td><span *ngIf="task.postedDate; else NoFieldValue">{{task.postedDate | date: 'dd MMM yyyy'}}</span></td>
                         <td> {{task.postedBy?.id ? (task.postedBy?.title + task.postedBy?.firstName + ' ' + task.postedBy?.lastName) : 'NA'}}</td>

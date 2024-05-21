@@ -78,8 +78,8 @@ export const appRoutes: Route[] = [
             {path: 'example', loadChildren: () => import('app/modules/admin/example/example.routes')},
             {path: 'users', canActivate: [AdminRoleGuard], loadChildren: () => import('app/modules/admin/users/users.routes')},
             {path: 'universities', loadChildren: () => import('app/modules/admin/universities/university.routes')},
-            {path: 'tasks', loadChildren: () => import('app/modules/tasks/tasks.routes')},
             {path: 'student-tracker', canActivate: [], loadChildren: () => import('app/modules/admin/student-tracker/student-tracker.routes')},
+            {path: 'handler-topic-status', canActivate: [AdminRoleGuard], loadChildren: () => import('app/modules/admin/handler-topic-status/handler-topic-status.routes')},
         ]
     },
     // 404 & Catch all

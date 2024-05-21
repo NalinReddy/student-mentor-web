@@ -4,7 +4,7 @@ import { MatTableModule } from '@angular/material/table';
 import { Course } from 'app/models/course.model';
 import { MatDialog } from '@angular/material/dialog';
 import { UserService } from 'app/core/user/user.service';
-import { BehaviorSubject, Subscription, combineLatest } from 'rxjs';
+import { BehaviorSubject, Subscription, combineLatest, distinctUntilChanged } from 'rxjs';
 import { CourseApiService } from 'app/core/course/courseapi.service';
 import { cloneDeep } from 'lodash';
 import { Role } from 'app/models/role.model';
@@ -32,8 +32,6 @@ import { UsersApiService } from 'app/core/users/users.api.service';
 import { StudentApiService } from 'app/core/student/studentapi.Service';
 import { User } from 'app/models/user.model';
 import { Student } from 'app/models/student.model';
-import { TasksListComponent } from 'app/modules/tasks/list/list.component';
-import { TasksService } from 'app/modules/tasks/tasks.service';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { TopicLookup, TopicsApiService } from 'app/core/tasks/topicsapi.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -48,10 +46,10 @@ import { Professor } from 'app/models/professor.model';
     standalone: true,
     imports: [CommonModule, MatTableModule, ReactiveFormsModule, CdkScrollable, MatFormFieldModule, TextFieldModule, MatSelectModule, MatOptionModule, MatIconModule, 
         MatInputModule, MatSlideToggleModule, MatTooltipModule, MatProgressBarModule, MatButtonModule, RouterLink, FuseFindByKeyPipe, PercentPipe,
-    TasksListComponent, MatDatepickerModule, DatePipe, FormsModule],
+    MatDatepickerModule, DatePipe, FormsModule],
     templateUrl: './tasks.component.html',
     styleUrls: ['./tasks.component.scss'],
-    providers: [CourseApiService, UsersApiService],
+    providers: [CourseApiService, UsersApiService, TasksApiService, StudentApiService, TopicsApiService, ProfessorApiService],
     animations: [
         trigger('detailExpand', [
             state('collapsed', style({ height: '0px', opacity: '0', display: 'none' })),
@@ -182,7 +180,6 @@ export class TasksComponent implements OnDestroy {
         private taskApiService: TasksApiService,
         private topicsApiService: TopicsApiService,
         private professorApiService: ProfessorApiService,
-        private taskService: TasksService,
         private dialog: MatDialog,
         private userService: UserService,
         private fb: FormBuilder,
@@ -267,14 +264,23 @@ export class TasksComponent implements OnDestroy {
 
     ngOnDestroy(): void {
         this.primarySubscripton.unsubscribe();
+        console.log("trigeref Ondestroy");
     }
 
     ngOnChanges(changes: SimpleChanges) {
         console.log(changes);
-        if (!changes.selectedUniversity.isFirstChange()) {
+        // if (!changes.selectedUniversity.isFirstChange()) {
+            this.queryParams = {assignedMentors: [], course: null, week: null, professor: null};
             this.taskApiService.resetTasks();
-            this.ngOnInit();
-        }
+            this.init();
+        // }
+    }
+
+    init() {
+        this.professorApiService.getAllprofessors(this.selectedUniversity.id);
+        this.topicsApiService.getAllTopicLookups();
+        this.courseApiService.getAllcourses(this.selectedUniversity?.id);
+        this.usersApiService.getAllUsers(this.selectedUniversity?.id);
     }
 
     ngOnInit(): void {
@@ -305,15 +311,13 @@ export class TasksComponent implements OnDestroy {
                 this.professors.forEach(professor => professor.university = this.selectedUniversity);
             })
         );
-        this.professorApiService.getAllprofessors(this.selectedUniversity.id);
 
         this.primarySubscripton.add(
             this.topicsApiService.topicLookup.subscribe((data) => {
                 this.topicsLookup = cloneDeep(data) || [];
-                this.topicsLookup.unshift({name: '--None--', id: '0', active: true, tracking: null});
+                this.topicsLookup.unshift({category: null, name: '--None--', id: '0', active: true, tracking: null});
             })
         );
-        this.topicsApiService.getAllTopicLookups();
 
         this.primarySubscripton.add(
             this.userService.user$.subscribe((user) => {
@@ -321,10 +325,15 @@ export class TasksComponent implements OnDestroy {
                 this.isLoggedInUserAdmin = user.role === this.appRoles.Admin;
                 this.isLoggedInUserSuperAdmin =
                     user.role === this.appRoles.SuperAdmin;
+                    if (!this.isLoggedInUserAdmin && !this.isLoggedInUserSuperAdmin) {
+                        this.columns = this.columns.filter(col => col !== "eduPassword");
+                    }
             })
         );
         this.primarySubscripton.add(
-            combineLatest([this.courseApiService.courses, this.usersApiService.users]).subscribe(([courses, users]) => {
+            combineLatest([this.courseApiService.courses, this.usersApiService.users]).pipe(distinctUntilChanged((prev, current) => {
+                return JSON.stringify(prev) === JSON.stringify(current)
+            })).subscribe(([courses, users]) => {
                 this.mentors = cloneDeep(users);
                 console.log("*********************************************calling*************************")
                 if (this.mentors?.length) {
@@ -334,6 +343,7 @@ export class TasksComponent implements OnDestroy {
                     } else {
                         this.filterTasksForm.controls.mentorAssigned.setValue(this.mentors[0].id, {emitEvent: false});
                     }
+                    this.queryParams['assignedMentors'] = [this.filterTasksForm.controls.mentorAssigned.value];
                 }
                 this.courses = cloneDeep(courses);
                 if (this.courses?.length) {
@@ -342,8 +352,7 @@ export class TasksComponent implements OnDestroy {
                 }
             })
         );
-        this.courseApiService.getAllcourses(this.selectedUniversity?.id);
-        this.usersApiService.getAllUsers(this.selectedUniversity?.id);
+       
 
         this.primarySubscripton.add(
             this.studentApiService.students.subscribe((data) => {
@@ -571,25 +580,6 @@ export class TasksComponent implements OnDestroy {
 
     filterOnFormChange() {
         this.taskApiService.getAllTasks(this.selectedUniversity.id, this.queryParams);
-    }
-
-    triggerCreateTask(taskFromUI?) {
-        const task = taskFromUI ? cloneDeep(taskFromUI) : new Task();
-        task.university = this.selectedUniversity.id;
-        if (taskFromUI) {
-            task.saved = true;
-            task.type = "section";
-            task.student = taskFromUI.student.id;
-            task.course = taskFromUI.course.id;
-        }
-        // this.taskService.createTask("section", { university: this.selectedUniversity.id });
-        this.dialog.open(TasksListComponent, {
-            width: '100vw',
-            height: '100vh',
-            maxWidth: '100%',
-            maxHeight: '100%',
-            data: {task}
-        });
     }
 
     /**

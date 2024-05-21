@@ -1,9 +1,9 @@
 {
-    "name": "fuse-angular",
+    "name": "student-mentor-angular",
     "version": "18.0.0",
-    "description": "Fuse - Angular Admin Template and Starter Project",
-    "author": "https://themeforest.net/user/srcn",
-    "license": "https://themeforest.net/licenses/standard",
+    "description": "Student mentor application",
+    "author": "sunny",
+    "license": "standard",
     "private": true,
     "scripts": {
         "ng": "ng",

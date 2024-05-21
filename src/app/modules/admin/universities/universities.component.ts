@@ -97,14 +97,19 @@ export class UniversitiesComponent implements OnInit, OnDestroy {
 
         );
 
-        this.userApiService.getLoggedInUserStats();
-
         this.universityApiService.getAllUniversities();
         
     }
 
+    onTabChange(event) {
+        if (event.index === 0 && this.selectedUniversity?.id) {
+            this.userApiService.getLoggedInUserStats(this.selectedUniversity.id);
+        }
+    }
+
     onChangeOfUniversity(university: University){
       this.selectedUniversity = university;
+      this.userApiService.getLoggedInUserStats(this.selectedUniversity.id);
     }
 
     /**

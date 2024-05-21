@@ -22,6 +22,13 @@ export const defaultNavigation: FuseNavigationItem[] = [
         type : 'basic',
         icon : 'heroicons_outline:academic-cap',
         link : '/student-tracker'
+    },
+    {
+        id   : 'handler-topic-status',
+        title: 'Handler Topic Status',
+        type : 'basic',
+        icon : 'heroicons_outline:stop-circle',
+        link : '/handler-topic-status'
     }
 ];
 export const compactNavigation: FuseNavigationItem[] = [
@@ -63,5 +70,12 @@ export const horizontalNavigation: FuseNavigationItem[] = [
         type : 'basic',
         icon : 'heroicons_outline:academic-cap',
         link : '/student-tracker'
+    },
+    {
+        id   : 'handler-topic-status',
+        title: 'Handler Topic Status',
+        type : 'basic',
+        icon : 'heroicons_outline:stop-circle',
+        link : '/handler-topic-status'
     }
 ];

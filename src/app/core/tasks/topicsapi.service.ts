@@ -7,7 +7,7 @@ import { SweetAlertService } from '@fuse/services/sweet-alerts/sweet-alerts.serv
 import { Topic } from 'app/models/topic.model';
 
 export class TopicLookup {
-    name: string; active: boolean; tracking: any
+    category: string | {[key: string]: any}; name: string; active: boolean; tracking: any
     id: any;
 } 
 
@@ -87,6 +87,17 @@ export class TopicsApiService
                     return result;
                 })
             );
+    }
+
+    getTopicCategories() {
+        console.log(`TasksApiService.getTopicCategories`);
+        return this.dataFactory.getMethod(`${environment.apiUrl}/Topics/categories`);
+    }
+
+    getHandlerTopicStatus(query: {university: string, category: string, week: number}) {
+        console.log(`TasksApiService.getHandlerTopicStatus`);
+        const queryData = `university=${query.university}&category=${query.category}&week=${query.week}`;
+        return this.dataFactory.getMethod(`${environment.apiUrl}/Topics/getHandlerTopicStatus?${queryData}`);
     }
 
     getAllTopicLookups() {

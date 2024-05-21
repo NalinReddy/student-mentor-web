@@ -116,10 +116,10 @@ export class StudentTrackerComponent {
 
         // Map discussionReplies and replyStatus to discussions
         const discussionTopicsIndexes: number[] = (task.topics as Topic[])
-        .map((topic: Topic, i: number) => ({ name: (topic.topic as TopicLookup).name, index: i }))
-        .filter((topic: { name: string, index: number }) => {
-            // Use a regular expression to match topic names starting with "Discussion" followed by a space and a number
-            return /^Discussion\s\d+$/.test(topic.name);
+        .map((topic: Topic, i: number) => ({ name: (topic.topic as TopicLookup).name, categoryName: ((topic.topic as TopicLookup).category as any)?.name, index: i }))
+        .filter((topic: { name: string, categoryName: string, index: number }) => {
+            // Use a regular expression to match topic lookup category name with "Discussion"
+            return /^discussion/.test(topic.categoryName?.toLowerCase());
         })
         .map((filteredTopic: { name: string, index: number }) => filteredTopic.index);
     

@@ -131,11 +131,11 @@ export class UsersApiService
         );
     }
 
-    getLoggedInUserStats() {
+    getLoggedInUserStats(university: string) {
 
         // should create a datafactory methods so that can handle 401 and other errors globally.
         console.log(`UsersApiService.getLoggedInUserStats`);
-        this.dataFactory.getMethod<User[]>(`${environment.apiUrl}/users/getLoggedInUserStats`).subscribe(
+        this.dataFactory.getMethod<User[]>(`${environment.apiUrl}/users/getLoggedInUserStats?university=${university}`).subscribe(
             (data) => {
                 this.dataStore.loggedInUserStats = data;
                 this._loggedInUserStats.next(Object.assign({}, this.dataStore).loggedInUserStats);

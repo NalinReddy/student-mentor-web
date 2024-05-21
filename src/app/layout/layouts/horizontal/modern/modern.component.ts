@@ -78,8 +78,8 @@ export class ModernLayoutComponent implements OnInit, OnDestroy
                 if (user.role !== Role.Admin && user.role !== Role.SuperAdmin) {
                     navigation.horizontal = navigation.horizontal.filter(nav =>  nav.id !== "users");
                     navigation.horizontal = navigation.horizontal.filter(nav =>  nav.id !== "users");
-                    // navigation.horizontal = navigation.horizontal.filter(nav =>  nav.id !== "student-tracker");
-                    // navigation.default = navigation.default.filter(nav =>  nav.id !== "student-tracker");
+                    navigation.horizontal = navigation.horizontal.filter(nav =>  nav.id !== "handler-topic-status");
+                    navigation.default = navigation.default.filter(nav =>  nav.id !== "handler-topic-status");
                 }
                 this.navigation = navigation;
             });

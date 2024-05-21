@@ -17,11 +17,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { SelectErrorStateMatcher } from '@fuse/directives/error-state-matcher';
-import { TopicsApiService } from 'app/core/tasks/topicsapi.service';
+import { TopicLookup, TopicsApiService } from 'app/core/tasks/topicsapi.service';
 import { Subscription } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { cloneDeep } from 'lodash';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-create-topic',
@@ -33,6 +34,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
         ReactiveFormsModule,
         FormsModule,
         MatIconModule,
+        MatSelectModule,
         MatInputModule,
         MatButtonModule,
         MatTableModule,
@@ -50,7 +52,7 @@ export class CreateTopicComponent {
       "name", "active"
     ];
     topics: {name: string; active: boolean; tracking: any}[] = [];
-
+    categories = [];
 
     /**
      *
@@ -75,6 +77,11 @@ export class CreateTopicComponent {
     }
 
     ngOnInit(): void {
+        this.primarySubscripton.add(
+            this.topicApiService.getTopicCategories()
+            .subscribe(cats => this.categories = cats)
+        );
+        
       this.topicApiService.getAllTopicLookups();
         this.initializeFormValues();
     }
@@ -82,6 +89,7 @@ export class CreateTopicComponent {
     /** min lenght and same as controls */
     initializeFormValues() {
         this.createTopicLookupForm = this.formBuilder.group({
+            category: [this.inputData?.category, [Validators.required]],
             name: [this.inputData?.name, [Validators.required]],
             active: [this.inputData?.active ?? true],
             tracking: [this.inputData?.tracking]
@@ -96,6 +104,24 @@ export class CreateTopicComponent {
         console.log(this.createTopicLookupForm);
         if (this.createTopicLookupForm.invalid) {
             console.info('component.submit form invalid');
+            return;
+        }
+
+        if (this.inputData?.id) {
+            this.primarySubscripton.add(
+                this.topicApiService
+                    .updateTopicLookup(this.createTopicLookupForm.value, this.inputData.id)
+                    .subscribe(
+                        (data) => {
+                            console.info(`Updated Topic lookup successfully`);
+                            // this.dialogRef.close(null);
+                            this.resetEdit();
+                        },
+                        (error) => {
+                            console.info(`Error saving Topic lookup: ${error}`);
+                        }
+                    )
+            );
             return;
         }
 
@@ -114,7 +140,32 @@ export class CreateTopicComponent {
         );
     }
 
+    edit(topic: TopicLookup) {
+        this.resetEdit();
+        setTimeout(() => {
+            const cloned = cloneDeep(topic);
+            delete cloned.id;
+            this.createTopicLookupForm.setValue({...cloned, category: topic.category ? topic.category : null});
+            this.inputData = topic;
+        }, 0)
+        
+    }
+    resetEdit() {
+        this.createTopicLookupForm.reset();
+        this.createTopicLookupForm.controls.active.setValue(true);
+        this.createTopicLookupForm.markAsPristine();
+        this.createTopicLookupForm.markAsUntouched();
+        if (this.inputData?.id) {
+            this.inputData = null;
+            return;
+        };
+    }
+
     dismiss(): void {
+        if (this.inputData?.id) {
+            this.resetEdit();
+            return;
+        };
         this.dialogRef.close(null);
     }
 }

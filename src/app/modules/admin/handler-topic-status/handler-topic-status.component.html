@@ -1,0 +1,81 @@
+<div class="p-6 sm:p-10">
+
+    <form class="flex flex-auto items-center gap-3 flex-wrap w-full mx-2" [formGroup]="fg" (ngSubmit)="submit()">
+        <!-- Filters -->
+        <mat-form-field class="w-full sm:w-72">
+            <mat-label>University</mat-label>
+            <mat-select formControlName="university" [errorStateMatcher]="matcher" >
+                <mat-option *ngFor="let university of universities" [value]="university.id">{{ university.name }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="fg.get('university').hasError('required')">
+                University is <strong>required</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field class="w-full sm:w-36">
+            <mat-label>Week</mat-label>
+            <mat-select formControlName="week" [errorStateMatcher]="matcher" >
+                <mat-option *ngFor="let week of weeks" [value]="week">Week {{ week }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="fg.get('week').hasError('required')">
+                Week is <strong>required</strong>
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field class="w-full sm:w-72 mr-3">
+            <mat-label>Topic</mat-label>
+            <mat-select formControlName="category" [errorStateMatcher]="matcher" >
+                <mat-option value="all">All</mat-option>
+                <mat-option *ngFor="let topic of topics" [value]="topic.id">{{ topic.name }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="fg.get('category').hasError('required')">
+                Topic is <strong>required</strong>
+            </mat-error>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit">
+            <mat-icon>search</mat-icon> Search
+        </button>
+    </form>
+
+    <div class="my-3">
+        <table class="customStyles bg-white dark:bg-inherit mt-3">
+            <tr>
+                <th>Category</th>
+                <th>Handler</th>
+                <th>Total</th>
+                <th>Pending</th>
+                <th>Done</th>
+                <th>Percentage</th>
+            </tr>
+            <ng-container *ngFor="let category of selectedCategory; let i = index">
+                <ng-container *ngFor="let topic of getAllTopicsByCategory(category.id); let topicId = index; let last = last">
+                    <tr >
+                        <td *ngIf="topicId === 0" [attr.rowspan]="getAllTopicsByCategory(category.id).length">{{category.name}}</td>
+                        <td>{{topic.mentor.name}}</td>
+                        <td>{{topic.total}}</td>
+                        <td>{{topic.pending}}</td>
+                        <td>{{topic.completed}}</td>
+                        <td [ngClass]="{
+                            'text-red-600': (topic.completed / topic.total) * 100 < 50,
+                            'text-amber-600': (topic.completed / topic.total) * 100 >= 50 && (topic.completed / topic.total) * 100 < 75,
+                            'text-amber-200': (topic.completed / topic.total) * 100 >= 75 && (topic.completed / topic.total) * 100 < 100,
+                            'text-green-600': (topic.completed / topic.total) * 100 === 100
+                          }">{{(topic.completed / topic.total) * 100 | number: '1.0-0' }}%</td>
+                          
+                    </tr>
+                    <tr *ngIf="last">
+                        <td colspan="2"></td>
+                        <th>{{getAggregateByCategoryId(category.id).total}}</th>
+                        <th>{{getAggregateByCategoryId(category.id).pending}}</th>
+                        <th>{{getAggregateByCategoryId(category.id).done}}</th>
+                        <th>
+                            {{(topic.completed / topic.total) * 100 | number: '1.0-0' }}%
+                        </th>
+                    </tr>
+                </ng-container>
+                
+            </ng-container>
+        </table>
+    </div>
+</div>
+<ng-template #NoFieldValue>
+    <span>-</span>
+</ng-template>

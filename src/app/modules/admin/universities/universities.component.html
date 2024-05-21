@@ -30,19 +30,19 @@
                                     class="text-2xl md:text-5xl font-semibold tracking-tight leading-7 md:leading-snug truncate">
                                     Welcome back, {{loggedInUser?.firstName}}!</div>
                             </ng-container>
-                            <div class="flex items-center">
+                            <div class="flex items-center" *ngIf="stats?.newTasksCount > 0">
                                 <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:bell'"></mat-icon>
-                                <div class="ml-1.5 leading-6 truncate text-secondary">You are having 15 new tasks</div>
+                                <div class="ml-1.5 leading-6 truncate text-secondary">You are having {{stats.newTasksCount}} new tasks</div>
                             </div>
                         </div>
                     </div>
                     <!-- Actions -->
-                    <div class="flex items-center mt-6 sm:mt-0 sm:ml-2 space-x-3">
+                    <div class="flex items-center mt-6 sm:mt-0 sm:ml-2 space-x-3" *ngIf="isLoggedInUserAdmin || isLoggedInUserSuperAdmin">
                         <button class="bg-accent" mat-flat-button [color]="'accent'" (click)="createTopic()">
                             <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:stop-circle'"></mat-icon>
                             <span class="ml-2">Add Topic</span>
                         </button>
-                        <button *ngIf="isLoggedInUserAdmin || isLoggedInUserSuperAdmin" mat-flat-button [color]="'primary'" (click)="createUniversity()">
+                        <button mat-flat-button [color]="'primary'" (click)="createUniversity()">
                             <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
                             <span class="ml-2">Add University</span>
                         </button>
@@ -71,7 +71,7 @@
         <div class="flex-auto border-t -mt-px pt-4 sm:pt-6">
             <div class="w-full max-w-screen-xl mx-auto">
                 <!-- Tabs -->
-                <mat-tab-group [selectedIndex]="selectedTabIndex" class="sm:px-2" mat-stretch-tabs="false" [animationDuration]="'0'">
+                <mat-tab-group [selectedIndex]="selectedTabIndex" class="sm:px-2" mat-stretch-tabs="false" [animationDuration]="'0'" (selectedTabChange)="onTabChange($event)">
 
                     <!-- Home -->
                     <mat-tab label="Home">
@@ -81,7 +81,7 @@
                                 <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
                                     <div class="flex items-start justify-between">
                                         <div class="text-lg font-medium tracking-tight leading-6 truncate">Task Summary</div>
-                                        <div class="ml-2 -mt-2 -mr-3">
+                                        <!-- <div class="ml-2 -mt-2 -mr-3">
                                             <button mat-icon-button [matMenuTriggerFor]="summaryMenu">
                                                 <mat-icon class="icon-size-5"
                                                     [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
@@ -91,25 +91,25 @@
                                                 <button mat-menu-item>2 days ago</button>
                                                 <button mat-menu-item>3 days ago</button>
                                             </mat-menu>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div class="flex flex-col items-center mt-2">
                                         <div
                                             class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-blue-500">
-                                            21</div>
+                                            {{stats?.taskStats?.notStarted}}</div>
                                         <div class="text-lg font-medium text-blue-600 dark:text-blue-500">Due Tasks
                                         </div>
                                         <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
-                                            <div class="text-md font-medium truncate">Completed:</div>
-                                            <div class="ml-1.5 text-lg font-semibold">13</div>
+                                            <div class="text-md font-medium truncate">Total:</div>
+                                            <div class="ml-1.5 text-lg font-semibold">{{stats?.taskStats?.total}}</div>
                                         </div>
                                     </div>
                                 </div>
                                 <!-- Overdue -->
                                 <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
                                     <div class="flex items-start justify-between">
-                                        <div class="text-lg font-medium tracking-tight leading-6 truncate">Overdue</div>
-                                        <div class="ml-2 -mt-2 -mr-3">
+                                        <div class="text-lg font-medium tracking-tight leading-6 truncate">Task in Progress</div>
+                                        <!-- <div class="ml-2 -mt-2 -mr-3">
                                             <button mat-icon-button [matMenuTriggerFor]="overdueMenu">
                                                 <mat-icon class="icon-size-5"
                                                     [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
@@ -119,16 +119,16 @@
                                                 <button mat-menu-item>2 days ago</button>
                                                 <button mat-menu-item>3 days ago</button>
                                             </mat-menu>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div class="flex flex-col items-center mt-2">
                                         <div
-                                            class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-red-500">
-                                            17</div>
-                                        <div class="text-lg font-medium text-red-600 dark:text-red-500">Tasks</div>
+                                            class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-amber-500">
+                                            {{stats?.taskStats?.inProgress}}</div>
+                                        <div class="text-lg font-medium text-amber-600 dark:text-amber-500">Tasks</div>
                                         <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
-                                            <div class="text-md font-medium truncate">From yesterday:</div>
-                                            <div class="ml-1.5 text-lg font-semibold">9</div>
+                                            <div class="text-md font-medium truncate">Completed:</div>
+                                            <div class="ml-1.5 text-lg font-semibold">{{stats?.taskStats?.completed}}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -136,7 +136,7 @@
                                 <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
                                     <div class="flex items-start justify-between">
                                         <div class="text-lg font-medium tracking-tight leading-6 truncate">Topics Summary</div>
-                                        <div class="ml-2 -mt-2 -mr-3">
+                                        <!-- <div class="ml-2 -mt-2 -mr-3">
                                             <button mat-icon-button [matMenuTriggerFor]="issuesMenu">
                                                 <mat-icon class="icon-size-5"
                                                     [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
@@ -146,16 +146,16 @@
                                                 <button mat-menu-item>2 days ago</button>
                                                 <button mat-menu-item>3 days ago</button>
                                             </mat-menu>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div class="flex flex-col items-center mt-2">
                                         <div
-                                            class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-amber-500">
-                                            24</div>
-                                        <div class="text-lg font-medium text-amber-600 dark:text-amber-500">Due Topics</div>
+                                            class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-blue-500">
+                                            {{stats?.topicStats?.notStarted}}</div>
+                                        <div class="text-lg font-medium text-blue-600 dark:text-blue-500">Due Topics</div>
                                         <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
-                                            <div class="text-md font-medium truncate">Closed today:</div>
-                                            <div class="ml-1.5 text-lg font-semibold">19</div>
+                                            <div class="text-md font-medium truncate">Total:</div>
+                                            <div class="ml-1.5 text-lg font-semibold">{{stats?.topicStats?.total}}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -164,7 +164,7 @@
                                     <div class="flex items-start justify-between">
                                         <div class="text-lg font-medium tracking-tight leading-6 truncate">Topics Overdue
                                         </div>
-                                        <div class="ml-2 -mt-2 -mr-3">
+                                        <!-- <div class="ml-2 -mt-2 -mr-3">
                                             <button mat-icon-button [matMenuTriggerFor]="featuresMenu">
                                                 <mat-icon class="icon-size-5"
                                                     [svgIcon]="'heroicons_mini:ellipsis-vertical'"></mat-icon>
@@ -174,17 +174,21 @@
                                                 <button mat-menu-item>2 days ago</button>
                                                 <button mat-menu-item>3 days ago</button>
                                             </mat-menu>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div class="flex flex-col items-center mt-2">
                                         <div
                                             class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-red-500">
-                                            38</div>
+                                            {{stats?.topicStats?.overdue}}</div>
                                         <div class="text-lg font-medium text-red-600 dark:text-red-500">Topics
                                         </div>
-                                        <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
+                                        <div class="flex items-baseline justify-center w-full mt-3 text-secondary">
+                                            <div class="text-md font-medium truncate">In Progress:</div>
+                                            <div class="ml-1.5 text-lg font-semibold">{{stats?.topicStats?.inProgress}}</div>
+                                        </div>
+                                        <div class="flex items-baseline justify-center w-full text-secondary">
                                             <div class="text-md font-medium truncate">Completed:</div>
-                                            <div class="ml-1.5 text-lg font-semibold">16</div>
+                                            <div class="ml-1.5 text-lg font-semibold">{{stats?.topicStats?.completed}}</div>
                                         </div>
                                     </div>
                                 </div>
